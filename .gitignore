@@ -9,3 +9,6 @@ nominal*
 physical.txt
 vivado*
 usage_statistics_webtalk.*
+prazor-arm/aes
+prazor-accel/aes
+
