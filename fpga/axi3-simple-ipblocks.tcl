@@ -1,0 +1,38 @@
+
+
+# These are the RTL files for the Xilinx protocol convertor
+
+
+# headers such as /axi_infrastructure_v1_1_header.vh
+set RTL_INCLUDE_PATH  "$ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_infrastructure_v1_1/cf21a66f/hdl/verilog"
+
+read_verilog $ksubs3_dir/xilinx_ip/djgaxi_auto_pc_0/synth/djgaxi_auto_pc_0.v
+read_verilog $ksubs3_dir/xilinx_ip/djgaxi_processing_system7_0_0/synth/djgaxi_processing_system7_0_0.v
+read_verilog $ksubs3_dir/xilinx_ip/djgaxi_processing_system7_0_0/hdl/verilog/processing_system7_v5_5_processing_system7.v
+
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_infrastructure_v1_1/cf21a66f/hdl/verilog/axi_infrastructure_v1_1_vector2axi.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_infrastructure_v1_1/cf21a66f/hdl/verilog/axi_infrastructure_v1_1_axi2vector.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_register_slice_v2_1/03a8e0ba/hdl/verilog/axi_register_slice_v2_1_axic_register_slice.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_register_slice_v2_1/03a8e0ba/hdl/verilog/axi_register_slice_v2_1_axi_register_slice.v
+
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_a_axi3_conv.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_axi3_conv.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_axilite_conv.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_axi_protocol_converter.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s_ar_channel.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s_aw_channel.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s_b_channel.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s_cmd_translator.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s_incr_cmd.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s_r_channel.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s_rd_cmd_fsm.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s_simple_fifo.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s_wrap_cmd.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b2s_wr_cmd_fsm.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_b_downsizer.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_decerr_slave.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_r_axi3_conv.v
+read_verilog $ksubs3_dir/xilinx_ip/ipshared/xilinx.com/axi_protocol_converter_v2_1/017861a2/hdl/verilog/axi_protocol_converter_v2_1_w_axi3_conv.v
+
+# eof

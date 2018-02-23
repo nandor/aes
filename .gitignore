@@ -7,3 +7,5 @@
 module/Makefile.in
 nominal*
 physical.txt
+vivado*
+usage_statistics_webtalk.*
