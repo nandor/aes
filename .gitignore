@@ -1,0 +1,9 @@
+*.o
+.libs
+.deps
+*.so
+*.lo
+*.la
+module/Makefile.in
+nominal*
+physical.txt
