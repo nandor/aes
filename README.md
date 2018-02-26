@@ -1,7 +1,7 @@
 unix
 ======
 
-ARM/Unix unaccelerated implementation
+ARM/Unix unaccelerated implementation, based on the tiny-C-aes library.
 
 
 prazor-arm

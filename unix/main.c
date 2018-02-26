@@ -1,13 +1,9 @@
-// System-on-Chip Design and Modelling Exercise 3.
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "aes.h"
-
-
 
 static char to_hex(uint8_t digit)
 {
@@ -75,7 +71,7 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
   uint8_t iv[16];
-  if (!parse_hex(argv[1], iv)) {
+  if (!parse_hex(argv[2], iv)) {
     fprintf(stderr, "Invalid IV: %s\n", argv[1]);
     return EXIT_FAILURE;
   }
