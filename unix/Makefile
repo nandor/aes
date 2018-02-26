@@ -3,13 +3,16 @@ CFLAGS=-O3
 
 all: aes
 
-aes: aes.o main.o
-	$(CC) -o $@ $?
+aes: main.o aes.o
+	$(CC) -o aes main.o aes.o
 
-%.o: %.c
-	$(CC) -c $(CFLAGS) -o $@ $<
+main.o: main.c aes.h
+	$(CC) -c $(CFLAGS) -o main.o main.c
+
+aes.o: aes.c aes.h
+	$(CC) -c $(CFLAGS) -o aes.o aes.c
 
 .PHONY: clean
 clean:
-	rm aes *.o
+	rm -f aes *.o
 
