@@ -5,17 +5,19 @@ module DUT(
   input [7:0] ksubsGpioSwitches,
   output reg [7:0] ksubsAbendSyndrome,
   output reg [7:0] ksubsManualWaypoint,
-  // NOC8 Service.
-  input [63:0]   Ksubs3_Noc16_TxData_lo,
-  input [7:0]    Ksubs3_Noc16_TxData_cmd,
-  input          Ksubs3_Noc16_TxData_valid,
-  output         Ksubs3_Noc16_TxData_rdy,
-  output [63:0]  Ksubs3_Noc16_RxData_lo,
-  output [7:0]   Ksubs3_Noc16_RxData_cmd,
-  output         Ksubs3_Noc16_RxData_valid,
-  input          Ksubs3_Noc16_RxData_rdy,
+  // NOC16 Service.
+  output reg [63:0] Ksubs3_Noc16_TxData_lo,
+  output reg [7:0]  Ksubs3_Noc16_TxData_cmd,
+  output reg        Ksubs3_Noc16_TxData_valid,
+  input             Ksubs3_Noc16_TxData_rdy, 
+
+  input [63:0]      Ksubs3_Noc16_RxData_lo,
+  input [7:0]       Ksubs3_Noc16_RxData_cmd,
+  input             Ksubs3_Noc16_RxData_valid,
+  output reg        Ksubs3_Noc16_RxData_rdy,
+
   // Serial number output.
-  output reg [31:0] designSerialNumber,
+  output reg [23:0] designSerialNumber,
   // 64-bit output. 
   output [31:0]   result_hi,
   output [31:0]   result_lo, 
@@ -23,9 +25,40 @@ module DUT(
   input clk,
   input reset);
 
+  reg[31:0] number;
+
   always @(posedge clk) begin
-    designSerialNumber <= 32'd1236;
-    ksubsGpioLeds <= ksubsGpioSwitches;
+    if (reset) begin
+      designSerialNumber <= 32'd0;
+      Ksubs3_Noc16_TxData_valid <= 0;
+      Ksubs3_Noc16_RxData_rdy <= 0;
+
+      number <= 0;
+    end else begin
+      designSerialNumber <= 32'd5;
+       
+      if (number == 0) begin
+        Ksubs3_Noc16_RxData_rdy <= 1;
+        Ksubs3_Noc16_TxData_valid <= 0;
+        
+        if (Ksubs3_Noc16_RxData_valid) begin
+          number <= Ksubs3_Noc16_RxData_lo;
+        end
+      end else begin
+        if (Ksubs3_Noc16_TxData_rdy) begin
+          Ksubs3_Noc16_RxData_rdy <= 0;
+          Ksubs3_Noc16_TxData_valid <= 1;
+
+          Ksubs3_Noc16_TxData_cmd <= 8'hEF;
+          Ksubs3_Noc16_TxData_lo <= number * 2;
+          
+          number <= 0;
+        end else begin
+          Ksubs3_Noc16_TxData_valid <= 0;
+        end
+      end
+    end
   end   
+
 endmodule
 

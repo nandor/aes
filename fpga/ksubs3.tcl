@@ -10,7 +10,7 @@ set outputDir /tmp/ksubs3-fpga
 # If you need hprls you will find a stable copy is being added here at some point soon:  /usr/groups/han/clteach/hprls2
 
 # Adjust the following setting for the name of the folder containing this folder or to `pwd`
-set design_dir $env(HOME)/Projects/ksubs3
+set design_dir [pwd]
 set ksubs3_dir $design_dir
 
 
