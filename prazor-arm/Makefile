@@ -14,27 +14,33 @@ all: aes
 
 include $(PRAZOR)/vhls/images/Makefile.inc
 
-CFLAGS += -DUNICORE
+KEY=11223344556677889900112233445566
+IV=11223344556677889900112233445566
+
+CFLAGS += -DUNICORE -I../unix
 
 EXTRALIBS += 
 
 CMD=$(SIM) $(DRAM_FLAGS) \
-    -self-starting-cores 2 \
+    -self-starting-cores 1 \
     -no-caches \
     -global-qk-ns 100 \
     -vcd-power-plot \
-    -tracelevel 1 \
+    -tracelevel 0 \
     -watch b8 +20
 
 
-aes: $(LIBS) aes.o $(CRT1) $(EXTRALIBS)
-	$(LD)  $(LDFLAGS) -o aes $(CRT1) aes.o $(EXTRALIBS) $(LIBS) $(LDLIBS) 
+aes: $(LIBS) aes.o main.o $(CRT1) $(EXTRALIBS)
+	$(LD)  $(LDFLAGS) -o aes $(CRT1) main.o aes.o $(EXTRALIBS) $(LIBS) $(LDLIBS) 
 
-aes.o: aes.c
-	$(CC) $(CFLAGS) -I$(DDRIVERS)/uart64_cbg -c aes.c
+main.o: main.c
+	$(CC) $(CFLAGS) -I$(DDRIVERS)/uart64_cbg -c main.c -o main.o
 
-run:
-	ulimit -t 100; $(CMD) -image ./aes -name nominal  
+aes.o: ../unix/aes.c
+	$(CC) $(CFLAGS) -c ../unix/aes.c -o aes.o
+
+run: aes
+	ulimit -t 100; $(CMD) -image ./aes -name nominal -- $(KEY) $(IV) input.txt output.txt
 
 clean:
 	rm -f hello *.o *.s
