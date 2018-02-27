@@ -4,6 +4,7 @@
 *.so
 *.lo
 *.la
+*.s
 module/Makefile.in
 nominal*
 physical.txt
