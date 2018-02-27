@@ -4,9 +4,8 @@
 #
 
 
-
+# You need to manually set the PRAZOR environment variable to the root directory of your compiled version of Prazor, i.e. export PRAZOR=/home/dtc34/Documents/P35/pvp11 
 TARCH=ARM32
-PRAZOR=$(HOME)/Projects/soc-design/pvp11
 USE_THUMB=1
 USE_PRLIBC=1
 
