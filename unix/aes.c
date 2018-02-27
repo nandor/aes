@@ -161,7 +161,7 @@ void AES_init_ctx_iv(AESContext* ctx, const uint8_t* key, const uint8_t* iv)
 void AES_CBC_encrypt_buffer(AESContext *ctx,uint8_t* buf, uint32_t length)
 {
   uint8_t *Iv = ctx->Iv;
-  for (uintptr_t i = 0; i < length; i += AES_BLOCKLEN) {
+  for (uint32_t i = 0; i < length; i += AES_BLOCKLEN) {
     XorWithIv(buf, Iv);
     Cipher((state_t*)buf, ctx->RoundKey);
     Iv = buf;
