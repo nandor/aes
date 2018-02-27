@@ -27,10 +27,13 @@ Prazor implementation talking to the module
 module
 ======
 
-Prazor accelerator module. This must be copied into prazor:
+Prazor accelerator module. As of right now, must manually be copied into your prazor directory into the following folder:
 
 vhls/src/aes
 
 and the makefiles and zynq.cpp must be adjusted accordingly.
 
+client
+======
 
+Used to talk to the FPGA accelerator over NOC. Has nothing to do with Prazor.
