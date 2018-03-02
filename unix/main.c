@@ -32,31 +32,6 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
   }
 }
 
-static int parse_hex(const char *src, uint8_t *key)
-{
-  for (unsigned i = 0; i < 32; ++i) {
-    const char chr = src[i];
-    int digit = 0;
-    if ('0' <= chr && chr <= '9') {
-      digit = chr - '0';
-    } else if ('A' <= chr && chr <= 'F') {
-      digit = chr - 'A' + 10;
-    } else if ('a' <= chr && chr <= 'f') {
-      digit = chr - 'a' + 10;
-    } else {
-      return 0;
-    }
-
-    if ((i & 1) == 0) {
-      key[i >> 1] = (key[i >> 1] & 0x0F) | (digit << 4);
-    } else {
-      key[i >> 1] = (key[i >> 1] & 0xF0) | (digit << 0);
-    }
-  }
-
-  return 1;
-}
-
 int main(int argc, char **argv)
 {
   if (argc < 3 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
@@ -66,12 +41,12 @@ int main(int argc, char **argv)
 
   // Parse the 128-bit encryption key and the IV.
   uint8_t key[16];
-  if (!parse_hex(argv[1], key)) {
+  if (!AES_parse_key(argv[1], key)) {
     fprintf(stderr, "Invalid key: %s\n", argv[1]);
     return EXIT_FAILURE;
   }
   uint8_t iv[16];
-  if (!parse_hex(argv[2], iv)) {
+  if (!AES_parse_key(argv[2], iv)) {
     fprintf(stderr, "Invalid IV: %s\n", argv[1]);
     return EXIT_FAILURE;
   }

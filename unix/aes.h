@@ -15,3 +15,5 @@ typedef struct
 
 void AES_init_ctx_iv(AESContext* ctx, const uint8_t* key, const uint8_t* iv);
 void AES_CBC_encrypt_buffer(AESContext* ctx, uint8_t* buf, uint32_t length);
+int  AES_parse_key(const char *src, uint8_t *key);
+
