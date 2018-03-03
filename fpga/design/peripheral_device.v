@@ -27,25 +27,32 @@ module DUT(
   input clk,
   input reset);
 
-  reg[176 * 8 - 1:0] rk;
   reg[4:0] rk_idx;
-  reg[127:0] iv;
-  reg[2:0] iv_idx;
+  reg[1:0] iv_idx;
+  reg[1:0] in_idx;    
+  reg[4:0] proc_idx;
 
-  reg[63:0] number;
+  reg[127:0] buf_in;
+  reg[176 * 8 - 1:0] rk;
+  reg[127:0] iv;
+  reg[127:0] register;
+  
+  reg has_last;
+  reg[63:0] last_block;
 
   always @(posedge clk) begin
     if (reset) begin
-      designSerialNumber <= 32'd0;
+      designSerialNumber <= 0;
       Ksubs3_Noc16_TxData_valid <= 0;
       Ksubs3_Noc16_RxData_rdy <= 0;
 
       rk_idx <= 0;
       iv_idx <= 0;
+      in_idx <= 0;
+      proc_idx <= 0;
+      has_last <= 0;
     end else begin
-      designSerialNumber <= 32'd5;
-
-      Ksubs3_Noc16_RxData_rdy <= 1;
+      designSerialNumber <= 32'd8;
 
       if (Ksubs3_Noc16_RxData_valid) begin
         case (Ksubs3_Noc16_RxData_cmd)
@@ -73,8 +80,7 @@ module DUT(
               18: begin rk[63 + 64 * 18 : 64 * 18] <= Ksubs3_Noc16_RxData_lo; rk_idx <= 19; end
               19: begin rk[63 + 64 * 19 : 64 * 19] <= Ksubs3_Noc16_RxData_lo; rk_idx <= 20; end
               20: begin rk[63 + 64 * 20 : 64 * 20] <= Ksubs3_Noc16_RxData_lo; rk_idx <= 21; end
-              21: begin rk[63 + 64 * 20 : 64 * 20] <= Ksubs3_Noc16_RxData_lo; rk_idx <= 22; end
-              22: begin rk[63 + 64 * 21 : 64 * 21] <= Ksubs3_Noc16_RxData_lo; rk_idx <= 23; end
+              21: begin rk[63 + 64 * 21 : 64 * 21] <= Ksubs3_Noc16_RxData_lo; rk_idx <= 22; end
             endcase
           end
           8'd1: begin
@@ -86,13 +92,77 @@ module DUT(
           end
           8'd2: begin
             // Read chunks of input and buffer them.
+            case (in_idx)
+              0: begin
+                buf_in <= { 64'd0, Ksubs3_Noc16_RxData_lo };
+                in_idx <= 1;
+              end
+              1: begin
+                buf_in <= { Ksubs3_Noc16_RxData_lo, buf_in[63:0] };
+                Ksubs3_Noc16_RxData_rdy <= 0;
+                in_idx <= 2;
+              end
+            endcase
           end
         endcase
       end
 
-      Ksubs3_Noc16_TxData_valid <= 1;
-      Ksubs3_Noc16_TxData_lo <= iv[127:64];
-      Ksubs3_Noc16_TxData_cmd <= 8'hEF;
+      case (proc_idx)
+        0: begin
+          if (in_idx == 2) begin
+            // TODO: step 1 of processing
+            register <= buf_in;
+            in_idx <= 0;
+            proc_idx <= 1;
+          end
+
+          if (has_last) begin
+            Ksubs3_Noc16_TxData_lo <= last_block;
+            Ksubs3_Noc16_TxData_cmd <= 8'hFF;
+            has_last <= 0;
+          end 
+
+          Ksubs3_Noc16_RxData_rdy <= 1;
+        end
+        1: begin
+          Ksubs3_Noc16_TxData_valid <= 0;
+          proc_idx <= 2;
+        end
+        2: begin
+          proc_idx <= 3;
+        end
+        3: begin
+          proc_idx <= 4;
+        end
+        4: begin
+          proc_idx <= 5;
+        end
+        5: begin
+          proc_idx <= 6;
+        end
+        6: begin
+          proc_idx <= 7;
+        end
+        7: begin
+          proc_idx <= 8;
+        end
+        8: begin
+          proc_idx <= 9;
+        end
+        9: begin
+          proc_idx <= 10;
+        end
+        10: begin
+          Ksubs3_Noc16_TxData_valid <= 1;
+          Ksubs3_Noc16_TxData_lo <= register[63:0];
+          Ksubs3_Noc16_TxData_cmd <= 8'hFF;
+          
+          has_last <= 1;
+          last_block <= register[127:64];
+
+          proc_idx <= 0;
+        end
+      endcase
     end
   end
 
