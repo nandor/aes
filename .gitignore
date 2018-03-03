@@ -12,7 +12,7 @@ vivado*
 usage_statistics_webtalk.*
 prazor-arm/aes
 prazor-arm/output.txt
-prazor-arm/input.txt
+prazor-accel/output.txt
 prazor-accel/aes
 client/client
 unix/aes
