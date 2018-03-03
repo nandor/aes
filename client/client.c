@@ -28,7 +28,7 @@ volatile uint32_t *MEM;
 
 static char to_hex(uint8_t digit)
 {
-  return (digit < 10) ? (digit + '0') : (digit + 'A');
+  return (digit < 10) ? (digit + '0') : (digit - 0xA + 'A');
 }
 
 static void noc_write(uint64_t data, uint8_t cmd)

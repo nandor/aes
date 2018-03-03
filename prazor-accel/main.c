@@ -47,7 +47,7 @@ static int control(int cmd)
 
 static char to_hex(uint8_t digit)
 {
-  return (digit < 10) ? (digit + '0') : (digit + 'A');
+  return (digit < 10) ? (digit + '0') : (digit - 0xA + 'A');
 }
 
 static void read_output(uint8_t *output)
