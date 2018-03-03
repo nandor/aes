@@ -83,7 +83,6 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length, uint8_t *output
   noc_write(*((uint64_t *)(buf + 0)), WRITE_DATA);
   noc_write(*((uint64_t *)(buf + 8)), WRITE_DATA);
     
-  uint8_t buffer[16];
   for (size_t i = 16; i < length; i += 16) {
     noc_write(*((uint64_t *)(buf + i + 0)), WRITE_DATA);
     noc_write(*((uint64_t *)(buf + i + 8)), WRITE_DATA);
