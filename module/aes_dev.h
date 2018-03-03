@@ -26,7 +26,7 @@ public:
 private:  
   void reset();
   bool rx_ready();
-  void handle_noc_rx();
+  void handle_noc_rx(const sc_time &time);
   
   bool running_;
   
@@ -49,6 +49,7 @@ private:
     uint8_t data[16];
     uint8_t wr;
     uint8_t rd;
+    sc_time time;
   } b[2];
 
   // Current buffer being written or read.
