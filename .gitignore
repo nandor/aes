@@ -16,3 +16,4 @@ prazor-accel/output.txt
 prazor-accel/aes
 client/client
 unix/aes
+fpga/fsm_encoding.os
