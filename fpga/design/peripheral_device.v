@@ -307,7 +307,7 @@ module DUT(
           
           proc_idx <= 10;
         end
-        11: begin
+        10: begin
           iv <= register;
           Ksubs3_Noc16_TxData_lo <= register[127:64];
           proc_idx <= 0;
