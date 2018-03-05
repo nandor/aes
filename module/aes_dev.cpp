@@ -2,6 +2,8 @@
 #include "aes_dev.h"
 #include "aes_lib.h"
 
+const sc_time kCycle(10, SC_NS);
+
 
 
 aes_dev::aes_dev(sc_module_name moduleName)
@@ -37,7 +39,10 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
   switch ((trans.get_address() - AES_BASE_ADDR) / 8) {
     // PIO_STATUS
     case 0: {
-      std::cerr << "Not implemented\n"; abort();
+      if (isRead) {
+        *ptr = 0;
+      } 
+      trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
     }
     // PIO_CTRL
@@ -58,36 +63,49 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
     }
     // PIO_TX_LO
     case 8: {
-      *ptr = txLo_;
-      txLo_ = 0;
+      if (isRead) {
+        *ptr = txLo_;
+        txLo_ = 0;
+      }
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
     }
     // PIO_TX_HI
     case 9: {
-      *ptr = txHi_;
-      txHi_ = 0;
+      if (isRead) {
+        *ptr = txHi_;
+        txHi_ = 0;
+      }
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
     }
     // PIO_TX_ST
     case 10: {
-      Buffer *buf = &b[currentRd_];
-      if (buf->wr != 16) {
-        *ptr = 0;
-      } else if (buf->rd == 0) {
-        AES_encrypt_block(rk_, iv_, buf->data);
-        txLo_ = *((uint32_t *)(buf->data + 0));
-        txHi_ = *((uint32_t *)(buf->data + 4));
-        *ptr = 1 << 8;
-        buf->rd += 8;
-      } else if (buf->rd == 8) {
-        txLo_ = *((uint32_t *)(buf->data + 8));
-        txHi_ = *((uint32_t *)(buf->data + 12));
-        *ptr = 1 << 8;
-        buf->wr = 0;
-        buf->rd = 0;
-        currentRd_ = !currentRd_;
+      if (isRead) {
+        Buffer *buf = &b[currentRd_];
+        if (buf->wr != 16) {
+          *ptr = 0;
+        } else {
+          const unsigned delta = (trans.ltd.point() - buf->time) / kCycle;
+          if (delta < 11) {
+            *ptr = 0;
+          } else { 
+            if (buf->rd == 0) {
+              AES_encrypt_block(rk_, iv_, buf->data);
+              txLo_ = *((uint32_t *)(buf->data + 0));
+              txHi_ = *((uint32_t *)(buf->data + 4));
+              *ptr = 1 << 8;
+              buf->rd += 8;
+            } else if (buf->rd == 8) {
+              txLo_ = *((uint32_t *)(buf->data + 8));
+              txHi_ = *((uint32_t *)(buf->data + 12));
+              *ptr = 1 << 8;
+              buf->wr = 0;
+              buf->rd = 0;
+              currentRd_ = !currentRd_;
+            }
+          }
+        }
       }
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
@@ -97,7 +115,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       if (!isRead) {
         rxLo_ = *ptr;
         rxReady_ |= 1 << 0;
-        handle_noc_rx();
+        handle_noc_rx(trans.ltd.point());
       }
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
@@ -107,7 +125,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       if (!isRead) {
         rxHi_ = *ptr;
         rxReady_ |= 1 << 1;
-        handle_noc_rx();
+        handle_noc_rx(trans.ltd.point());
       }
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
@@ -119,7 +137,8 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       } else {
         rxCmd_ = *ptr & 0xFF;
         rxReady_ |= 1 << 2;
-        handle_noc_rx();
+        handle_noc_rx(trans.ltd.point());
+        trans.ltd += kCycle;
       }
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
@@ -153,7 +172,7 @@ bool aes_dev::rx_ready()
   return b[currentWr_].wr != 16;
 }
 
-void aes_dev::handle_noc_rx()
+void aes_dev::handle_noc_rx(const sc_time &time)
 {
   // Bail out if device not running.
   if (!running_) {
@@ -186,7 +205,6 @@ void aes_dev::handle_noc_rx()
       if (ivPtr_ < sizeof(iv_)) {
         *((uint64_t*)(iv_ + ivPtr_)) = data;
         ivPtr_ += 8;
-        break;
       }
       break;
     }
@@ -197,6 +215,7 @@ void aes_dev::handle_noc_rx()
         Buffer *buf = &b[currentWr_];
         assert(buf->wr != 16);
         *((uint64_t *)(buf->data + buf->wr)) = data;
+        buf->time = time;
         buf->wr += 8;
         if (buf->wr == 16) {
           currentWr_ = !currentWr_;

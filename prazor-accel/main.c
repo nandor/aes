@@ -95,6 +95,13 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length, uint8_t *output
 
 int main(int argc, char **argv)
 {
+  // Enable caches.
+  asm("mov r0,#0x1000"); 
+  asm("orr r0,r0,#4");
+  asm("mcr  p15, 0, r0, c1, c0, 0"); 
+  ((int *)0xF8F02100)[0] = 1; 
+  
+  // Check arguments: ./aes {iv} {key} {input} {output}
   if (argc < 5 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
     fprintf(stderr, "Usage: %s {key} {iv}\n", argc == 1 ? argv[0] : "aes");
     return 1;
