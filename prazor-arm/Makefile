@@ -16,13 +16,12 @@ include $(PRAZOR)/vhls/images/Makefile.inc
 KEY=11223344556677889900112233445566
 IV=11223344556677889900112233445566
 
-CFLAGS += -DUNICORE -I../unix
+CFLAGS += -DUNICORE -I../unix -O3
 
 EXTRALIBS += 
 
 CMD=$(SIM) $(DRAM_FLAGS) \
     -self-starting-cores 1 \
-    -no-caches \
     -global-qk-ns 100 \
     -vcd-power-plot \
     -tracelevel 0 \

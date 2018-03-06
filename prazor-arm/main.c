@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     printf("Cannot open input/output files.");
     return -1;
   }
-  
+    
   // Set up the AES context.
   AESContext ctx;
   AES_init_ctx_iv(&ctx, key, iv);
@@ -62,10 +62,9 @@ int main(int argc, char **argv)
   uint8_t buffer[512];
   int ptr;
   while (!_syscall_refill(fi, &ptr, buffer, sizeof(buffer))) {
-    encode(&ctx, buffer, ptr, output);
-    _syscall_flush(fo, buf, ptr);
+    encode(&ctx, buffer, ptr);
+    _syscall_flush(fo, buffer, ptr);
   } 
- 
   _syscall_fclose(fi);
   _syscall_fclose(fo);
   return 0;
