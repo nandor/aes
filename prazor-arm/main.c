@@ -8,7 +8,7 @@ static char to_hex(uint8_t digit)
   return (digit < 10) ? (digit + '0') : (digit - 0xA + 'A');
 }
 
-static void encode(AESContext *ctx, uint8_t *buf, size_t length, uint8_t *output)
+static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 {
   if (length % 16 != 0) {
     char pad = 16 - length % 16;
@@ -18,11 +18,6 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length, uint8_t *output
   }
 
   AES_CBC_encrypt_buffer(ctx, buf, length);
-
-  for (size_t i = 0; i < length; ++i) {
-    output[2 * i + 0] = to_hex((buf[i] >> 4) & 0xF);
-    output[2 * i + 1] = to_hex((buf[i] >> 0) & 0xF);
-  }
 }
 
 int main(int argc, char **argv)
@@ -65,11 +60,10 @@ int main(int argc, char **argv)
   
   // Read & encode all bytes.
   uint8_t buffer[512];
-  uint8_t output[sizeof(buffer) * 2];
   int ptr;
   while (!_syscall_refill(fi, &ptr, buffer, sizeof(buffer))) {
     encode(&ctx, buffer, ptr, output);
-    _syscall_flush(fo, output, ptr * 2);
+    _syscall_flush(fo, buf, ptr);
   } 
  
   _syscall_fclose(fi);

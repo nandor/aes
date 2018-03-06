@@ -7,7 +7,7 @@
 
 static char to_hex(uint8_t digit)
 {
-  return (digit < 10) ? (digit + '0') : (digit + 'A');
+  return (digit < 10) ? (digit + '0') : (digit - 0xA + 'A');
 }
 
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
@@ -21,13 +21,7 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 
   AES_CBC_encrypt_buffer(ctx, buf, length);
 
-  char output[length * 2];
-  for (size_t i = 0; i < length; ++i) {
-    output[2 * i + 0] = to_hex((buf[i] >> 4) & 0xF);
-    output[2 * i + 1] = to_hex((buf[i] >> 0) & 0xF);
-  }
-
-  if (write(1, output, sizeof(output)) != sizeof(output)) {
+  if (write(1, buf, length) != length) {
     perror("write failed");
   }
 }

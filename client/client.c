@@ -33,9 +33,7 @@ static char to_hex(uint8_t digit)
 
 static void noc_write(uint64_t data, uint8_t cmd)
 {
-  while ((MEM[PIO_RX_NOC16_STATUS] & (1 << 8)) == 0) {
-    usleep(100);
-  }
+  while ((MEM[PIO_RX_NOC16_STATUS] & (1 << 8)) == 0);
 
   MEM[PIO_RX_NOC16_DATA_LO] = data >> 0;
   MEM[PIO_RX_NOC16_DATA_HI] = data >> 32;
@@ -48,12 +46,20 @@ static int noc_poll(uint64_t *data_out, uint8_t *cmd_out)
   if (cmd & (1 << 8)) {
     uint32_t lo = MEM[PIO_TX_NOC16_DATA_LO];
     uint32_t hi = MEM[PIO_TX_NOC16_DATA_HI];
-    *data_out = (((uint64_t)hi) << 32ull) | (((uint64_t)lo) << 0ull);
-    *cmd_out = cmd;
+    if (data_out) {
+      *data_out = (((uint64_t)hi) << 32ull) | (((uint64_t)lo) << 0ull);
+    }
+    if (cmd_out) {
+      *cmd_out = cmd;
+    }
     return 1; 
   } else {
-    *data_out = 0;
-    *cmd_out = 0;
+    if (data_out) {
+      *data_out = 0;
+    }
+    if (cmd_out) {
+      *cmd_out = 0;
+    }
     return 0;
   }
 }
@@ -72,24 +78,6 @@ static int control(int cmd)
   MEM[PIO_CTRL] = flag;  
 }
 
-static void read_output()
-{
-  uint8_t buf[16];
-    
-  uint64_t data;
-  uint8_t cmd;
-  noc_read(&data, &cmd);
-  *((uint64_t *)(buf + 0)) = data;
-  noc_read(&data, &cmd);
-  *((uint64_t *)(buf + 8)) = data;
-
-  for (size_t i = 0; i < 16; ++i) {
-    putchar(to_hex((buf[i] >> 4) & 0xF));
-    putchar(to_hex((buf[i] >> 0) & 0xF));
-  }
-  putchar('\n');
-}
-
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 {
   if (length % 16 != 0) {
@@ -102,17 +90,23 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
   if (length == 0) {
     return;
   } 
-  
+ 
   noc_write(*((uint64_t *)(buf + 0)), 2);
   noc_write(*((uint64_t *)(buf + 8)), 2);
-    
   for (size_t i = 16; i < length; i += 16) {
     noc_write(*((uint64_t *)(buf + i + 0)), 2);
     noc_write(*((uint64_t *)(buf + i + 8)), 2);
-    read_output();
+
+    noc_read((uint64_t*)(buf + i - 16), NULL);
+    noc_read((uint64_t*)(buf + i -  8), NULL);
   }
 
-  read_output();
+  noc_read((uint64_t*)(buf + length - 16), NULL);
+  noc_read((uint64_t*)(buf + length -  8), NULL);
+
+  if (write(1, buf, length) != length) {
+    perror("write failed");
+  }
 }
 
 
@@ -157,9 +151,6 @@ int main(int argc, char **argv)
   usleep(1000);
   control(0x10);
 	
-  // Communicate.
-  printf("Serial number: %x\n", MEM[PIO_SERIAL]);
-
   // Transfer the RK and IV.
   for (int i = 0; i < 176; i += 8) {
     noc_write(*(uint64_t*)(ctx.RoundKey + i), 0);
