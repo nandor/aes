@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O3 -I../unix
+CFLAGS=-std=c11 -O3 -I../unix
 
 all: client
 
