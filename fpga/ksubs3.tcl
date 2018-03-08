@@ -5,7 +5,7 @@ set TOPNAME ksubs3_zynq_toplevel
 
 #STEP#1: define the output directory area.
 #
-set outputDir /tmp/ksubs3-fpga
+set outputDir ./output
 
 # If you need hprls you will find a stable copy is being added here at some point soon:  /usr/groups/han/clteach/hprls2
 

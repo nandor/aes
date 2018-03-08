@@ -5,6 +5,8 @@
 *.lo
 *.la
 *.s
+*.rpt
+*.jou
 module/Makefile.in
 nominal*
 physical.txt
