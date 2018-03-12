@@ -68,7 +68,7 @@ Next, create a file *input.txt* in the prazor-arm folder. Then, type *make run*.
 prazor-accel
 ======
 
-Prazor implementation with acceleration. Talks to 'module', which is the Prazor accelerator.
+Prazor implementation with acceleration. Talks to 'module', which is the Prazor accelerator. If you have not moved *module* to the correct place when you run *make run*, you will get caught in an infinite loop.
 
 Usage:
 
