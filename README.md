@@ -6,7 +6,7 @@ TODO
 unix
 ======
 
-C implementation of AES encryption based on the tiny-C-aes library. Also contains code to call the C implementation without acceleration to run on standard Unix.
+C library of AES encryption based on the tiny-C-aes library, *aes.c* and *aes.h*. Folder also contains code to call the C library without acceleration to run on standard Unix.
 
 Usage:
 
@@ -59,7 +59,7 @@ Prazor implementation of AES encryption without any acceleration. Uses the AES l
 
 Usage:
 
-First, set the PRAZOR environment variable, i.e.
+First, set the PRAZOR environment variable to the root directory of your pre-compiled version of Prazor, i.e.
 
 	export PRAZOR=/home/dtc34/Documents/P35/pvp11
 

@@ -34,8 +34,8 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  // Parse the 128-bit encryption key and IV.
-  // The result is that the hex-input strings get loaded in binary format in an array.
+  // Library call to parse the 128-bit encryption key and IV.
+  // Result is that the hex-input strings get loaded in binary format into two 16-byte arrays - one for the IV and one for the key..
   uint8_t key[16];
   if (!AES_parse_key(argv[1], key)) {
     fprintf(stderr, "Invalid key: %s\n", argv[1]);
@@ -47,11 +47,13 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  // Set up the AES context.
+  // Set up the AES context using the AES library.
   AESContext ctx;
   AES_init_ctx_iv(&ctx, key, iv);
 
-  // Read from stdin or a pipe and keep encoding chunks of data.
+  // Perform the encryption.
+  // Read the plaintext from stdin or a pipe and encode the chunks of data which are received.
+  // Encode is a call to the AES library.
   uint8_t buffer[1024];
   size_t idx = 0;
   for (;;) {
