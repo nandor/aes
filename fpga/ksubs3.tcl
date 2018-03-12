@@ -5,7 +5,7 @@ set TOPNAME ksubs3_zynq_toplevel
 
 #STEP#1: define the output directory area.
 #
-set outputDir /tmp/ksubs3-fpga
+set outputDir ./output
 
 # If you need hprls you will find a stable copy is being added here at some point soon:  /usr/groups/han/clteach/hprls2
 
@@ -62,11 +62,11 @@ read_verilog $ksubs3_dir/xilinx_ip/djgaxi.v
 #set part xc7z020clg484-1  
 #set pinout_define ZEDBOARD20=1 
 
-#set part xc7z010clg400-1  
-#set pinout_define PARCARD10=1 
+set part xc7z010clg400-1  
+set pinout_define PARCARD10=1 
 
-set part xc7z020clg400-1  
-set pinout_define PYNQ20=1 
+#set part xc7z020clg400-1  
+#set pinout_define PYNQ20=1 
 
 
 # Set the PCB pinout
@@ -74,8 +74,7 @@ set pinout_define PYNQ20=1
 # Zedboard wants:   set pinout $ksubs3_dir/pinouts/zedboard20.xdc
 # Pynq wants:       set pinout $ksubs3_dir/pinouts/PYNQ-Z1_C.xdc
 
-
-set pinout $ksubs3_dir/pinouts/PYNQ-Z1_C.xdc
+set pinout $ksubs3_dir/pinouts/parallella10.xdc
 
 
 #set resultService_define DUT_WANTS_RESULT64_SERVICE=1

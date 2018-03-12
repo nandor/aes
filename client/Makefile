@@ -11,4 +11,6 @@ client.o: client.c
 
 aes.o: ../unix/aes.c
 	$(CC) $(CFLAGS) -c ../unix/aes.c -o aes.o
-
+clean:
+	rm -r ./*.o
+	rm client

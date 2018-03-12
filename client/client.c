@@ -80,6 +80,7 @@ static int control(int cmd)
 
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 {
+  //If the length is not 16, pad it
   if (length % 16 != 0) {
     char pad = 16 - length % 16;
     for (unsigned i = 0; i < pad; ++i) {
@@ -104,6 +105,7 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
   noc_read((uint64_t*)(buf + length - 16), NULL);
   noc_read((uint64_t*)(buf + length -  8), NULL);
 
+  //This is where the ciphertext actually gets printed.
   if (write(1, buf, length) != length) {
     perror("write failed");
   }
@@ -169,7 +171,7 @@ int main(int argc, char **argv)
       perror("read failed");
       return EXIT_FAILURE;
     }
-
+// Allows us to pipe information into stdin
     if (len < count) {
       if (isatty(0)) {
         if (buffer[idx + len - 1] == '\n') {
@@ -183,7 +185,10 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
       }
     }
+  // End of allowing us to pipe in information.
 
+
+  //Testing to see if buffer is full
     idx += len;
     if (idx == sizeof(buffer)) {
       encode(&ctx, buffer, sizeof(buffer));

@@ -9,14 +9,6 @@ VIVADO=/usr/groups/ecad/xilinx/Vivado2017/Vivado/2016.4
 
 #   $ export XILINXD_LICENSE_FILE=27020@lmserv-xilinx
 
-KIWIC_FLAGS= \
-	-vnl-resets=synchronous \
-	-kiwic-finish=disable \
-	-vnl-roundtrip=disable \
-	-kiwic-register-colours=1 \
-	-bevelab-default-pause-mode=bblock \
-
-
 all: fpga
 
 

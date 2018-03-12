@@ -28,12 +28,14 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 
 int main(int argc, char **argv)
 {
+  //argv[1] = key, argv[2] = IV
   if (argc < 3 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
     fprintf(stderr, "Usage: %s {key} {iv}\n", argc == 1 ? argv[0] : "aes");
     return EXIT_FAILURE;
   }
 
-  // Parse the 128-bit encryption key and the IV.
+  // Parse the 128-bit encryption key and IV.
+  // The result is that the hex-input strings get loaded in binary format in an array.
   uint8_t key[16];
   if (!AES_parse_key(argv[1], key)) {
     fprintf(stderr, "Invalid key: %s\n", argv[1]);
@@ -41,7 +43,7 @@ int main(int argc, char **argv)
   }
   uint8_t iv[16];
   if (!AES_parse_key(argv[2], iv)) {
-    fprintf(stderr, "Invalid IV: %s\n", argv[1]);
+    fprintf(stderr, "Invalid IV: %s\n", argv[2]);
     return EXIT_FAILURE;
   }
 
