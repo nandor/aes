@@ -159,6 +159,10 @@ void AES_init_ctx_iv(AESContext* ctx, const uint8_t* key, const uint8_t* iv)
 }
 
 void AES_CBC_encrypt_buffer(AESContext *ctx,uint8_t* buf, uint32_t length)
+/* Encrypt a buffer using the CBC (Cipher Block Chaining) mode of encryption.
+   Input: AES Context (IV and Key), buffer of plaintext, and length of plaintext.
+   Output: None, but the buffer which was originally plaintext gets filled with ciphertext.
+*/
 {
   uint8_t *Iv = ctx->Iv;
   for (uint32_t i = 0; i < length; i += AES_BLOCKLEN) {

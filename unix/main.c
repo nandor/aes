@@ -11,6 +11,9 @@ static char to_hex(uint8_t digit)
 }
 
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
+/* Perform the AES Encryption on the buffer which was passed as an argument.
+   Input: AES Context (IV and Key), buffer of plaintext, and length of plaintext.
+   Output: None, but the buffer which was originally plaintext gets filled with ciphertext. */
 {
   if (length % 16 != 0) {
     char pad = 16 - length % 16;
@@ -52,13 +55,13 @@ int main(int argc, char **argv)
   AES_init_ctx_iv(&ctx, key, iv);
 
   // Perform the encryption.
-  // Read the plaintext from stdin or a pipe and encode the chunks of data which are received.
+  // Read the plaintext from stdin (via a pipe) and encode the chunks of data which are received.
   // Encode is a call to the AES library.
   uint8_t buffer[1024];
   size_t idx = 0;
-  for (;;) {
+  for (;;) { //poll stdin
     size_t count = sizeof(buffer) - idx;
-    ssize_t len = read(0, buffer + idx, count);
+    ssize_t len = read(0, buffer + idx, count); //read data from stdin
     if (len < 0) {
       perror("read failed");
       return EXIT_FAILURE;
