@@ -204,7 +204,7 @@ module DUT(
       if (Ksubs3_Noc16_RxData_valid) begin
         case (Ksubs3_Noc16_RxData_cmd)
           8'd0: begin
-            // Set the 11 chunks of the round key.
+            // Read in the 11 chunks of the round key.
             case (rk_idx)
                0: begin rk[63 + 64 *  0 : 64 *  0] <= Ksubs3_Noc16_RxData_lo; rk_idx <=  1; end
                1: begin rk[63 + 64 *  1 : 64 *  1] <= Ksubs3_Noc16_RxData_lo; rk_idx <=  2; end
@@ -231,14 +231,14 @@ module DUT(
             endcase
           end
           8'd1: begin
-            // Set the 2 chunks of the IV.
+            // Read in the 2 chunks of the IV.
             case (iv_idx)
               0: begin iv[ 63: 0] <= Ksubs3_Noc16_RxData_lo; iv_idx <= 1; end
               1: begin iv[127:64] <= Ksubs3_Noc16_RxData_lo; iv_idx <= 0; end
             endcase
           end
           8'd2: begin
-            // Read chunks of input and buffer them.
+            // Read in the chunks of input (plaintext) and buffer them.
             case (in_idx)
               0: begin
                 buf_in <= { 64'd0, Ksubs3_Noc16_RxData_lo };
@@ -301,6 +301,7 @@ module DUT(
           register = ShiftRows(SubBytes(rk[127 + 128 * 9 : 128 * 9] ^ register));
           register = rk[127 + 128 * 10 : 128 * 10] ^ register;
           
+	  //Write data to output registers
           Ksubs3_Noc16_TxData_valid <= 1;
           Ksubs3_Noc16_TxData_lo <= register[63:0];
           Ksubs3_Noc16_TxData_cmd <= 8'hFF;
