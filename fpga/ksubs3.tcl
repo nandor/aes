@@ -26,6 +26,7 @@ file mkdir $outputDir
 # These are the (Kiwi-generated) RTL files for the current design - you should be importing your own
 #read_verilog primes_offchip.v
 #read_verilog $design_dir/example_designs/lu-decomp-sp.v
+read_verilog $design_dir/design/helper.v
 read_verilog $design_dir/design/peripheral_device.v
 
 # These are the RTL files needed for this particular ksubs3 wrapper.
@@ -90,6 +91,7 @@ synth_design -top $TOPNAME -part $part  \
 
 # Constraints - xcf file
 read_xdc $pinout
+create_clock -period 6.000 -name my_main_clock [get_nets zynq_axi_master_i/ACLK]
 
 
 #write_checkpoint -force $outputDir/post_synth.dcp
@@ -111,10 +113,10 @@ report_clock_utilization -file $outputDir/clock_util.rpt
 #
 
 # Optionally run optimization if there are timing violations after placement
-#   if {[get_property SLACK [get_timing_paths -max_paths 1 -nworst 1 -setup]] < 0} {
-#   puts "Found setup timing violations => running physical optimization"
-#   phys_opt_design
-#   }
+if {[get_property SLACK [get_timing_paths -max_paths 1 -nworst 1 -setup]] < 0} {
+   puts "Found setup timing violations => running physical optimization"
+   phys_opt_design
+}
 
 #write_checkpoint -force $outputDir/post_place.dcp
 report_utilization -file $outputDir/post_place_util.rpt
@@ -131,7 +133,7 @@ route_design
 report_route_status -file $outputDir/post_route_status.rpt
 
 # ACLK is 100 MHz at the moment. 
-#create_clock -period 10.000 -name my_main_clock -waveform {0.000 5.000} [get_nets zynq_axi_master_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]]
+create_clock -period 6.000 -name my_main_clock [get_nets zynq_axi_master_i/ACLK]
 report_timing_summary -file $outputDir/post_route_timing_summary.rpt -report_unconstrained
 
 

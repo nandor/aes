@@ -94,7 +94,7 @@ module DUT(
                 in_idx <= 1;
               end
               1: begin
-                buf_in <= { Ksubs3_Noc16_RxData_lo, buf_in[63:0] };
+                buf_in <= { Ksubs3_Noc16_RxData_lo, buf_in[63:0] } ^ rk[127 : 0];
                 Ksubs3_Noc16_RxData_rdy <= 0;
                 in_idx <= 2;
               end
@@ -109,44 +109,76 @@ module DUT(
           Ksubs3_Noc16_TxData_valid <= 0;
          
           if (in_idx == 2) begin
-            register <= MixCols(ShiftRows(SubBytes(iv ^ rk[127 + 128 * 0 : 128 * 0] ^ buf_in)));
+            register <= ShiftRows(SubBytes(iv ^ buf_in));
             in_idx <= 0;
             proc_idx <= 1;
           end
         end
         1: begin
-          register <= MixCols(ShiftRows(SubBytes(rk[127 + 128 * 1 : 128 * 1] ^ register)));
+          register <= SubBytes(rk[127 + 128 * 1 : 128 * 1] ^ MixCols(register));
           proc_idx <= 2;
         end
         2: begin
-          register <= MixCols(ShiftRows(SubBytes(rk[127 + 128 * 2 : 128 * 2] ^ register)));
+          register <= MixCols(ShiftRows(register));
           proc_idx <= 3;
         end
         3: begin
-          register <= MixCols(ShiftRows(SubBytes(rk[127 + 128 * 3 : 128 * 3] ^ register)));
+          register <= SubBytes(rk[127 + 128 * 2 : 128 * 2] ^ register);
           proc_idx <= 4;
         end
         4: begin
-          register <= MixCols(ShiftRows(SubBytes(rk[127 + 128 * 4 : 128 * 4] ^ register)));
+          register <= MixCols(ShiftRows(register));
           proc_idx <= 5;
         end
         5: begin
-          register <= MixCols(ShiftRows(SubBytes(rk[127 + 128 * 5 : 128 * 5] ^ register)));
+          register <= SubBytes(rk[127 + 128 * 3 : 128 * 3] ^ register);
           proc_idx <= 6;
         end
         6: begin
-          register <= MixCols(ShiftRows(SubBytes(rk[127 + 128 * 6 : 128 * 6] ^ register)));
+          register <= MixCols(ShiftRows(register));
           proc_idx <= 7;
         end
         7: begin
-          register <= MixCols(ShiftRows(SubBytes(rk[127 + 128 * 7 : 128 * 7] ^ register)));
+          register <= SubBytes(rk[127 + 128 * 4 : 128 * 4] ^ register);
           proc_idx <= 8;
         end
         8: begin
-          register <= MixCols(ShiftRows(SubBytes(rk[127 + 128 * 8 : 128 * 8] ^ register)));
+          register <= MixCols(ShiftRows(register));
           proc_idx <= 9;
         end
         9: begin
+          register <= SubBytes(rk[127 + 128 * 5 : 128 * 5] ^ register);
+          proc_idx <= 10;
+        end
+        10: begin
+          register <= MixCols(ShiftRows(register));
+          proc_idx <= 11;
+        end
+        11: begin
+          register <= SubBytes(rk[127 + 128 * 6 : 128 * 6] ^ register);
+          proc_idx <= 12;
+        end
+        12: begin
+          register <= MixCols(ShiftRows(register));
+          proc_idx <= 13;
+        end
+        13: begin
+          register <= SubBytes(rk[127 + 128 * 7 : 128 * 7] ^ register);
+          proc_idx <= 14;
+        end
+        14: begin
+          register <= MixCols(ShiftRows(register));
+          proc_idx <= 15;
+        end
+        15: begin
+          register <= SubBytes(rk[127 + 128 * 8 : 128 * 8] ^ register);
+          proc_idx <= 16;
+        end
+        16: begin
+          register <= MixCols(ShiftRows(register));
+          proc_idx <= 17;
+        end
+        17: begin
           register = ShiftRows(SubBytes(rk[127 + 128 * 9 : 128 * 9] ^ register));
           register = rk[127 + 128 * 10 : 128 * 10] ^ register;
           
@@ -155,9 +187,9 @@ module DUT(
           Ksubs3_Noc16_TxData_lo <= register[63:0];
           Ksubs3_Noc16_TxData_cmd <= 8'hFF;
           
-          proc_idx <= 10;
+          proc_idx <= 18;
         end
-        10: begin
+        18: begin
           iv <= register;
           Ksubs3_Noc16_TxData_lo <= register[127:64];
           proc_idx <= 0;
