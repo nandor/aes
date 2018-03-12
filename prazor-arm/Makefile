@@ -41,5 +41,5 @@ run: aes
 	ulimit -t 100; $(CMD) -image ./aes -name nominal -- $(KEY) $(IV) input.txt output.txt
 
 clean:
-	rm -f hello *.o *.s
+	rm -f aes *.o *.s *.txt nominal nominal.vcd
 
