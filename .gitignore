@@ -19,3 +19,4 @@ prazor-accel/aes
 client/client
 unix/aes
 fpga/fsm_encoding.os
+monitor/*.log

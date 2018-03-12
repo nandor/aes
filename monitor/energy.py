@@ -2,10 +2,14 @@
 
 import socket
 import time
+import sys
+import datetime
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect(('bognor.sm', 2002))
+
+print datetime.datetime.now()
 
 t0 = time.time()
 v1p = None
@@ -20,8 +24,10 @@ while True:
     v1 = v1c - v1p
     v5 = v5c - v5p
     v1p, v5p = v1c, v5c
-
-    print time.time() - t0, v5, v1
+    
+    if v5 != 0 and v1 != 0:
+      print time.time() - t0, ',', v5, ',',  v1
+      sys.stdout.flush()
   
   time.sleep(0.5)
 
