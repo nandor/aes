@@ -84,12 +84,13 @@ Prazor accelerator module. Must be manually copied into your Prazor directory:
 	cp ./module/* $PRAZOR/vhls/src/aes/
 
 Next, the following changes must be made to Prazor:
-	1. Include the two aes headers in the file zynq.h
-	2. The new block needs to be instantiated inside the zynq files src/platform/arm/zynq/parallella/zynq{.cpp,.h}
-	3.  BUSMUX64_BIND(busmux0, aes0.port0, AES_BASE_ADDR, AES_SPACING); must be added to zynq.cpp to connect the device to the I/O bus.
-	4. src/Makefile.am needs to be adjusted to include the aes subdirectory. Make sure the aes subdirectory is listed at the beginning of the list, or at least before platform.
-	5. Change the variable AC_OUTPUT in configure.ac to include the AES directory.
-	6. add $(top_builddir)/src/aes/libaes.la to both libzynq_s_la_LIBADD and libzynq_la_LIBADD into src/platform/arm/zynq/parallella/Makefile.am
+
+1. Include the two aes headers in the file zynq.h
+2. The new block needs to be instantiated inside the zynq files src/platform/arm/zynq/parallella/zynq{.cpp,.h}
+3.  BUSMUX64_BIND(busmux0, aes0.port0, AES_BASE_ADDR, AES_SPACING); must be added to zynq.cpp to connect the device to the I/O bus.
+4. src/Makefile.am needs to be adjusted to include the aes subdirectory. Make sure the aes subdirectory is listed at the beginning of the list, or at least before platform.
+5. Change the variable AC_OUTPUT in configure.ac to include the AES directory.
+6. add $(top_builddir)/src/aes/libaes.la to both libzynq_s_la_LIBADD and libzynq_la_LIBADD into src/platform/arm/zynq/parallella/Makefile.am
 
 
 Whenever you are building Prazor, make sure you are in the vhls directory and type *autoreconf* followed by *./configure  TLM_POWER3=$TLM_POWER3 --with-tlm-power --with-speedo  --host=x86_64-pc-linux-gnu* ensuring all your environment variables are set properly.
