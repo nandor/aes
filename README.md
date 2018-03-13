@@ -68,20 +68,21 @@ Next, create a file *input.txt* in the prazor-arm folder. Then, type *make run*.
 prazor-accel
 ======
 
-Prazor implementation with acceleration. Talks to 'module', which is the Prazor accelerator. If you have not moved *module* to the correct place when you run *make run*, you will get caught in an infinite loop.
+Prazor implementation with acceleration. Talks to 'module', which is the Prazor accelerator.
 
 Usage:
 
-Same as unaccelerated Prazor.
+Same as unaccelerated Prazor. Note that if you have not moved *module* to the correct place and followed the instructions below correctly, when you *make run*, you will get caught in an infinite loop.
 
 
 module
 ======
 
-Prazor accelerator module. As of right now, must manually be copied into your prazor directory into the following folder:
+Prazor accelerator module. Must be manually copied into your Prazor directory:
 
-$PRAZOR/vhls/src/aes
+	mkdir $PRAZOR/vhls/src/aes
+	cp ./module/* $PRAZOR/vhls/src/aes/
 
-and the makefiles and zynq.cpp must be adjusted accordingly.
+Next, zynq.cpp must be edited to include the new module. Additionally, vhls/src/Makefile.am needs to be adjusted to include the aes subdirectory.
 
 
