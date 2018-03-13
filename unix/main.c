@@ -11,10 +11,16 @@
 
 
 
+/**
+ * Perform the AES Encryption on the buffer which was passed as an argument.
+ *
+ * @param ctx AES Context (IV and Key)
+ * @param buf Plaintext buffer
+ * @param length Length of buffer
+ *
+ * @note The buffer which was originally plaintext gets filled with ciphertext. 
+ */
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
-/* Perform the AES Encryption on the buffer which was passed as an argument.
-   Input: AES Context (IV and Key), buffer of plaintext, and length of plaintext.
-   Output: None, but the buffer which was originally plaintext gets filled with ciphertext. */
 {
   //If the length is not 16, pad it
   if (length % 16 != 0) {
@@ -34,14 +40,15 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 
 int main(int argc, char **argv)
 {
-  //argv[1] = key, argv[2] = IV
+  // argv[1] = key, argv[2] = IV
   if (argc < 3 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
     fprintf(stderr, "Usage: %s {key} {iv}\n", argc == 1 ? argv[0] : "aes");
     return EXIT_FAILURE;
   }
 
   // Library call to parse the 128-bit encryption key and IV.
-  // Result is that the hex-input strings get loaded in binary format into two 16-byte arrays - one for the IV and one for the key..
+  // Result is that the hex-input strings get loaded in binary 
+  // format into two 16-byte arrays - one for the IV and one for the key..
   uint8_t key[16];
   if (!AES_parse_key(argv[1], key)) {
     fprintf(stderr, "Invalid key: %s\n", argv[1]);
@@ -105,6 +112,22 @@ int main(int argc, char **argv)
   tm = localtime(&t);
   printf("%02d:%02d:%02d %f\n", tm->tm_hour, tm->tm_min, tm->tm_sec, dt);
   sleep(3);
+
+  // Write the output, if there's a file name specified.
+  if (argc >= 4) {
+    int fd = open(argv[3], O_WRONLY | O_CREAT, 0666);
+    if (fd < 0) {
+      perror("Cannot open output file.");
+      return EXIT_FAILURE;
+    }
+
+    if (write(fd, data, length) != length) {
+      perror("Cannot write output.");
+      return EXIT_FAILURE;
+    }
+    
+    close(fd);
+  }
 
   return EXIT_SUCCESS;
 }
