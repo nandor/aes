@@ -3,11 +3,6 @@
 
 
 
-static char to_hex(uint8_t digit)
-{
-  return (digit < 10) ? (digit + '0') : (digit - 0xA + 'A');
-}
-
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 {
   if (length % 16 != 0) {
@@ -20,6 +15,8 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
   AES_CBC_encrypt_buffer(ctx, buf, length);
 }
 
+uint8_t buffer[32 * 1024];
+
 int main(int argc, char **argv)
 {
   // Enable caches.  
@@ -29,7 +26,7 @@ int main(int argc, char **argv)
   ((int *)0xF8F02100)[0] = 1; 
   
   // Verify arguments.
-  if (argc < 5 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
+  if (argc < 4 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
     fprintf(stderr, "Usage: %s {key} {iv}\n", argc == 1 ? argv[0] : "aes");
     return 1;
   }
@@ -48,9 +45,8 @@ int main(int argc, char **argv)
   
   // Open the input & output files. 
   int fi = _syscall_fopen(argv[3], "r");
-  int fo = _syscall_fopen(argv[4], "w");
-  if (fi < 0 || fo < 0) {
-    printf("Cannot open input/output files.");
+  if (fi < 0) { 
+    printf("Cannot open input file.");
     return -1;
   }
     
@@ -59,14 +55,11 @@ int main(int argc, char **argv)
   AES_init_ctx_iv(&ctx, key, iv);
   
   // Read & encode all bytes.
-  uint8_t buffer[512];
   int ptr;
   while (!_syscall_refill(fi, &ptr, buffer, sizeof(buffer))) {
     encode(&ctx, buffer, ptr);
-    _syscall_flush(fo, buffer, ptr);
   } 
   _syscall_fclose(fi);
-  _syscall_fclose(fo);
   return 0;
 }
 
