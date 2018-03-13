@@ -202,6 +202,22 @@ int main(int argc, char **argv)
   printf("%02d:%02d:%02d %f\n", tm->tm_hour, tm->tm_min, tm->tm_sec, dt);
   sleep(3);
 
+  // Write the output, if there's a file name specified.
+  if (argc >= 4) {
+    int fd = open(argv[3], O_WRONLY | O_CREAT, 0666);
+    if (fd < 0) {
+      perror("Cannot open output file.");
+      return EXIT_FAILURE;
+    }
+
+    if (write(fd, data, length) != length) {
+      perror("Cannot write output.");
+      return EXIT_FAILURE;
+    }
+    
+    close(fd);
+  }
+
   return EXIT_SUCCESS;
 }
 

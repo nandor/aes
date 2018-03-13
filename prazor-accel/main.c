@@ -88,7 +88,7 @@ int main(int argc, char **argv)
   ((int *)0xF8F02100)[0] = 1; 
   
   // Check arguments: ./aes {iv} {key} {input} {output}
-  if (argc < 4 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
+  if (argc < 5 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
     fprintf(stderr, "Usage: %s {key} {iv}\n", argc == 1 ? argv[0] : "aes");
     return 1;
   }
@@ -107,8 +107,9 @@ int main(int argc, char **argv)
 
   // Open the input & output files. 
   int fi = _syscall_fopen(argv[3], "r");
-  if (fi < 0) {
-    printf("Cannot open input files.");
+  int fo = _syscall_fopen(argv[4], "w");
+  if (fi < 0 || fo < 0) {
+    printf("Cannot open input/output files.");
     return -1;
   }
   
@@ -129,12 +130,14 @@ int main(int argc, char **argv)
   }
    
   // Read & encode all bytes.
-  int ptr;
-  while (!_syscall_refill(fi, &ptr, buffer, sizeof(buffer))) {
-    encode(&ctx, buffer, ptr);
+  int length;
+  while (!_syscall_refill(fi, &length, buffer, sizeof(buffer))) {
+    encode(&ctx, buffer, length);
+    _syscall_flush(fo, buffer, length);
   } 
  
   _syscall_fclose(fi);
+  _syscall_fclose(fo);
   return 0;
 }
 
