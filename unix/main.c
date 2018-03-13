@@ -1,20 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #include "aes.h"
 
-static char to_hex(uint8_t digit)
-{
-  return (digit < 10) ? (digit + '0') : (digit - 0xA + 'A');
-}
+
 
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 /* Perform the AES Encryption on the buffer which was passed as an argument.
    Input: AES Context (IV and Key), buffer of plaintext, and length of plaintext.
    Output: None, but the buffer which was originally plaintext gets filled with ciphertext. */
 {
+  //If the length is not 16, pad it
   if (length % 16 != 0) {
     char pad = 16 - length % 16;
     for (unsigned i = 0; i < pad; ++i) {
@@ -22,12 +24,13 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
     }
   }
 
+  if (length == 0) {
+    return;
+  } 
+  
   AES_CBC_encrypt_buffer(ctx, buf, length);
-
-  if (write(1, buf, length) != length) {
-    perror("write failed");
-  }
 }
+
 
 int main(int argc, char **argv)
 {
@@ -53,39 +56,56 @@ int main(int argc, char **argv)
   // Set up the AES context using the AES library.
   AESContext ctx;
   AES_init_ctx_iv(&ctx, key, iv);
-
-  // Perform the encryption.
-  // Read the plaintext from stdin (via a pipe) and encode the chunks of data which are received.
-  // Encode is a call to the AES library.
-  uint8_t buffer[1024];
-  size_t idx = 0;
-  for (;;) { //poll stdin
-    size_t count = sizeof(buffer) - idx;
-    ssize_t len = read(0, buffer + idx, count); //read data from stdin
-    if (len < 0) {
-      perror("read failed");
+  
+  // Load the input data.
+  uint8_t *data;
+  off_t length;
+  {
+    int fd = open(argv[3], O_RDONLY);
+    if (fd < 0) {
+      perror("Cannot open input file");
       return EXIT_FAILURE;
     }
 
-    if (len < count) {
-      if (isatty(0)) {
-        if (buffer[idx + len - 1] == '\n') {
-          len -= 1;
-        } else {
-          encode(&ctx, buffer, idx + len);
-          return EXIT_FAILURE;
-        }
-      } else {
-        encode(&ctx, buffer, idx + len);
-        return EXIT_SUCCESS;
-      }
+    struct stat st;
+    if (fstat(fd, &st)) {
+      perror("Cannot stat input file");
+      return EXIT_FAILURE;
     }
-
-    idx += len;
-    if (idx == sizeof(buffer)) {
-      encode(&ctx, buffer, sizeof(buffer));
-      idx = 0;
+    
+    length = st.st_size;
+    data = (uint8_t*) malloc(length);
+    if (read(fd, data, length) != length) {
+      perror("Cannot read input file.");
     }
+  
+    close(fd);
   }
+  
+  time_t t;
+  struct tm *tm;
+  
+  sleep(3);
+  t = time(NULL);
+  tm = localtime(&t);
+  printf("%02d:%02d:%02d ", tm->tm_hour, tm->tm_min, tm->tm_sec);
+  
+  // Encrypt in the timed portion. before this, we wait a bit and idle
+  // in order to get more stable power measurements.
+  double dt;
+  {
+    const clock_t start = clock();
+    encode(&ctx, data, length);
+    const clock_t end = clock();
+  
+    dt = (double)(end - start) / CLOCKS_PER_SEC;
+  }
+  
+  t = time(NULL);
+  tm = localtime(&t);
+  printf("%02d:%02d:%02d %f\n", tm->tm_hour, tm->tm_min, tm->tm_sec, dt);
+  sleep(3);
+
+  return EXIT_SUCCESS;
 }
 

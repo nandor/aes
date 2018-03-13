@@ -1,11 +1,12 @@
-// Client which talks to the AES accelerator.
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
+#include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+
 #include "aes.h"
 
 #define PIO_BASE 0x43c00000
@@ -25,11 +26,6 @@
 volatile uint32_t *MEM;
 
 
-
-static char to_hex(uint8_t digit)
-{
-  return (digit < 10) ? (digit + '0') : (digit - 0xA + 'A');
-}
 
 static void noc_write(uint64_t data, uint8_t cmd)
 {
@@ -71,13 +67,6 @@ static void noc_read(uint64_t *data_out, uint8_t *cmd_out)
   }
 }
 
-static int control(int cmd)
-{
-  uint32_t flag = MEM[PIO_CTRL];
-  flag = (flag & 0x30) | (cmd & 0x3F);
-  MEM[PIO_CTRL] = flag;  
-}
-
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 {
   //If the length is not 16, pad it
@@ -104,31 +93,33 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 
   noc_read((uint64_t*)(buf + length - 16), NULL);
   noc_read((uint64_t*)(buf + length -  8), NULL);
+}
 
-  //This is where the ciphertext actually gets printed.
-  if (write(1, buf, length) != length) {
-    perror("write failed");
-  }
+static int control(int cmd)
+{
+  uint32_t flag = MEM[PIO_CTRL];
+  flag = (flag & 0x30) | (cmd & 0x3F);
+  MEM[PIO_CTRL] = flag;  
 }
 
 
 int main(int argc, char **argv)
 {
-  if (argc < 3 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
-    fprintf(stderr, "Usage: %s {key} {iv}\n", argc == 1 ? argv[0] : "aes");
-    return 1;
+  if (argc < 4 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
+    fprintf(stderr, "Usage: %s {key} {iv} {in}\n", argc == 1 ? argv[0] : "aes");
+    return EXIT_FAILURE;
   }
 
-  //  Parse the 128-bit encryption key and the IV.
+  // Parse the 128-bit encryption key and the IV.
   uint8_t key[16];
   if (!AES_parse_key(argv[1], key)) {
     fprintf(stderr, "Invalid key: %s\n", argv[1]);
-    return 1;
+    return EXIT_FAILURE;
   }
   uint8_t iv[16];
   if (!AES_parse_key(argv[2], iv)) {
     fprintf(stderr, "Invalid IV: %s\n", argv[1]);
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // Map the controller to memory.
@@ -152,7 +143,7 @@ int main(int argc, char **argv)
   control(0x02);
   usleep(1000);
   control(0x10);
-	
+  
   // Transfer the RK and IV.
   for (int i = 0; i < 176; i += 8) {
     noc_write(*(uint64_t*)(ctx.RoundKey + i), 0);
@@ -161,40 +152,55 @@ int main(int argc, char **argv)
     noc_write(*(uint64_t*)(ctx.Iv + i), 1);
   }
 
-  // Read from stdin or a pipe and keep encoding chunks of data.
-  uint8_t buffer[1024];
-  size_t idx = 0;
-  for (;;) {
-    size_t count = sizeof(buffer) - idx;
-    ssize_t len = read(0, buffer + idx, count);
-    if (len < 0) {
-      perror("read failed");
+  // Load the input data.
+  uint8_t *data;
+  off_t length;
+  {
+    int fd = open(argv[3], O_RDONLY);
+    if (fd < 0) {
+      perror("Cannot open input file");
       return EXIT_FAILURE;
     }
-// Allows us to pipe information into stdin
-    if (len < count) {
-      if (isatty(0)) {
-        if (buffer[idx + len - 1] == '\n') {
-          len -= 1;
-        } else {
-          encode(&ctx, buffer, idx + len);
-          return EXIT_FAILURE;
-        }
-      } else {
-        encode(&ctx, buffer, idx + len);
-        return EXIT_SUCCESS;
-      }
-    }
-  // End of allowing us to pipe in information.
 
-
-  //Testing to see if buffer is full
-    idx += len;
-    if (idx == sizeof(buffer)) {
-      encode(&ctx, buffer, sizeof(buffer));
-      idx = 0;
+    struct stat st;
+    if (fstat(fd, &st)) {
+      perror("Cannot stat input file");
+      return EXIT_FAILURE;
     }
+    
+    length = st.st_size;
+    data = (uint8_t*) malloc(length);
+    if (read(fd, data, length) != length) {
+      perror("Cannot read input file.");
+    }
+  
+    close(fd);
   }
+  
+  time_t t;
+  struct tm *tm;
+  
+
+  sleep(3);
+  t = time(NULL);
+  tm = localtime(&t);
+  printf("%02d:%02d:%02d ", tm->tm_hour, tm->tm_min, tm->tm_sec);
+  
+  // Same as in the unix version. 
+  double dt;
+  {
+    const clock_t start = clock();
+    encode(&ctx, data, length);
+    const clock_t end = clock();
+  
+    dt = (double)(end - start) / CLOCKS_PER_SEC;
+  }
+
+  
+  t = time(NULL);
+  tm = localtime(&t);
+  printf("%02d:%02d:%02d %f\n", tm->tm_hour, tm->tm_min, tm->tm_sec, dt);
+  sleep(3);
 
   return EXIT_SUCCESS;
 }
