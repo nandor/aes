@@ -3,11 +3,6 @@
 
 
 
-static char to_hex(uint8_t digit)
-{
-  return (digit < 10) ? (digit + '0') : (digit - 0xA + 'A');
-}
-
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 {
   if (length % 16 != 0) {
@@ -19,6 +14,8 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 
   AES_CBC_encrypt_buffer(ctx, buf, length);
 }
+
+uint8_t buffer[32 * 1024];
 
 int main(int argc, char **argv)
 {
@@ -49,8 +46,8 @@ int main(int argc, char **argv)
   // Open the input & output files. 
   int fi = _syscall_fopen(argv[3], "r");
   int fo = _syscall_fopen(argv[4], "w");
-  if (fi < 0 || fo < 0) {
-    printf("Cannot open input/output files.");
+  if (fo < 0 || fo < 0) { 
+    printf("Cannot open input/output file.");
     return -1;
   }
     
@@ -59,11 +56,10 @@ int main(int argc, char **argv)
   AES_init_ctx_iv(&ctx, key, iv);
   
   // Read & encode all bytes.
-  uint8_t buffer[512];
-  int ptr;
-  while (!_syscall_refill(fi, &ptr, buffer, sizeof(buffer))) {
-    encode(&ctx, buffer, ptr);
-    _syscall_flush(fo, buffer, ptr);
+  int length;
+  while (!_syscall_refill(fi, &length, buffer, sizeof(buffer))) {
+    encode(&ctx, buffer, length);
+    _syscall_flush(fo, buffer, length);
   } 
   _syscall_fclose(fi);
   _syscall_fclose(fo);

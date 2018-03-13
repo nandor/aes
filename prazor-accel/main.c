@@ -32,12 +32,16 @@ static void noc_write(uint64_t data, uint8_t cmd)
 static int noc_read(uint64_t *data, uint8_t *cmd)
 {
   int flag;
-  while (((flag= *PIO_TX_ST) & (1 << 8)) == 0);
+  while (((flag = *PIO_TX_ST) & (1 << 8)) == 0);
   
   uint64_t lo = *PIO_TX_LO;
   uint64_t hi = *PIO_TX_HI;
-  *cmd = flag & 0xFF;
-  *data = (hi << 32ull) | (lo << 0ull);
+  if (cmd) {
+    *cmd = flag & 0xFF;
+  }
+  if (data) {
+    *data = (hi << 32ull) | (lo << 0ull);
+  }
 }
 
 static int control(int cmd)
@@ -45,29 +49,7 @@ static int control(int cmd)
   *PIO_CTRL = (*PIO_CTRL & 0x30) | ((cmd & 3) << 4);
 }
 
-static char to_hex(uint8_t digit)
-{
-  return (digit < 10) ? (digit + '0') : (digit - 0xA + 'A');
-}
-
-static void read_output(uint8_t *output)
-{
-  uint8_t buf[16];
-    
-  uint64_t data;
-  uint8_t cmd;
-  noc_read(&data, &cmd);
-  *((uint64_t *)(buf + 0)) = data;
-  noc_read(&data, &cmd);
-  *((uint64_t *)(buf + 8)) = data;
-
-  for (size_t i = 0; i < 16; ++i) {
-    output[2 * i + 0] = to_hex((buf[i] >> 4) & 0xF);
-    output[2 * i + 1] = to_hex((buf[i] >> 0) & 0xF);
-  }
-}
-
-static void encode(AESContext *ctx, uint8_t *buf, size_t length, uint8_t *output)
+static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 {
   if (length % 16 != 0) {
     char pad = 16 - length % 16;
@@ -86,12 +68,16 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length, uint8_t *output
   for (size_t i = 16; i < length; i += 16) {
     noc_write(*((uint64_t *)(buf + i + 0)), WRITE_DATA);
     noc_write(*((uint64_t *)(buf + i + 8)), WRITE_DATA);
-    read_output(output + (i - 16) * 2);
+
+    noc_read((uint64_t*)(buf + i - 16), NULL);
+    noc_read((uint64_t*)(buf + i -  8), NULL);
   }
 
-  read_output(output + (length * 2) - 32);
+  noc_read((uint64_t*)(buf + length - 16), NULL);
+  noc_read((uint64_t*)(buf + length -  8), NULL);
 }
 
+uint8_t buffer[128 * 1024];
 
 int main(int argc, char **argv)
 {
@@ -144,12 +130,10 @@ int main(int argc, char **argv)
   }
    
   // Read & encode all bytes.
-  int ptr;
-  uint8_t buffer[128];
-  uint8_t output[sizeof(buffer) * 2];
-  while (!_syscall_refill(fi, &ptr, buffer, sizeof(buffer))) {
-    encode(&ctx, buffer, ptr, output);
-    _syscall_flush(fo, output, ptr * 2);
+  int length;
+  while (!_syscall_refill(fi, &length, buffer, sizeof(buffer))) {
+    encode(&ctx, buffer, length);
+    _syscall_flush(fo, buffer, length);
   } 
  
   _syscall_fclose(fi);

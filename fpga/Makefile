@@ -14,13 +14,7 @@ all: fpga
 
 fpga:
 	$(VIVADO)/bin/vivado -source ksubs3.tcl -mode batch 
-	ls -l /tmp/ksubs3-fpga
-	md5sum /tmp/ksubs3-fpga/topfpga.bit
-
-
-isim:
-	iverilog simsys.v $(ANAME).v $(CVTECH1) $(CVTECH2) $(X1) ksubs3.v
-	./a.out
+	md5sum output/topfpga.bit
 
 
 # eof

@@ -23,10 +23,8 @@ EXTRALIBS +=
 CMD=$(SIM) $(DRAM_FLAGS) \
     -self-starting-cores 1 \
     -global-qk-ns 100 \
-    -vcd-power-plot \
     -tracelevel 0 \
-    -watch b8 +20
-
+    -core-frequency 666
 
 aes: $(LIBS) aes.o main.o $(CRT1) $(EXTRALIBS)
 	$(LD)  $(LDFLAGS) -o aes $(CRT1) main.o aes.o $(EXTRALIBS) $(LIBS) $(LDLIBS) 

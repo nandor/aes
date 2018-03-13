@@ -1,20 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #include "aes.h"
 
-static char to_hex(uint8_t digit)
-{
-  return (digit < 10) ? (digit + '0') : (digit - 0xA + 'A');
-}
 
+
+/**
+ * Perform the AES Encryption on the buffer which was passed as an argument.
+ *
+ * @param ctx AES Context (IV and Key)
+ * @param buf Plaintext buffer
+ * @param length Length of buffer
+ *
+ * @note The buffer which was originally plaintext gets filled with ciphertext. 
+ */
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
-/* Perform the AES Encryption on the buffer which was passed as an argument.
-   Input: AES Context (IV and Key), buffer of plaintext, and length of plaintext.
-   Output: None, but the buffer which was originally plaintext gets filled with ciphertext. */
 {
+  //If the length is not 16, pad it
   if (length % 16 != 0) {
     char pad = 16 - length % 16;
     for (unsigned i = 0; i < pad; ++i) {
@@ -22,23 +30,25 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
     }
   }
 
+  if (length == 0) {
+    return;
+  } 
+  
   AES_CBC_encrypt_buffer(ctx, buf, length);
-
-  if (write(1, buf, length) != length) {
-    perror("write failed");
-  }
 }
+
 
 int main(int argc, char **argv)
 {
-  //argv[1] = key, argv[2] = IV
+  // argv[1] = key, argv[2] = IV
   if (argc < 3 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
     fprintf(stderr, "Usage: %s {key} {iv}\n", argc == 1 ? argv[0] : "aes");
     return EXIT_FAILURE;
   }
 
   // Library call to parse the 128-bit encryption key and IV.
-  // Result is that the hex-input strings get loaded in binary format into two 16-byte arrays - one for the IV and one for the key..
+  // Result is that the hex-input strings get loaded in binary 
+  // format into two 16-byte arrays - one for the IV and one for the key..
   uint8_t key[16];
   if (!AES_parse_key(argv[1], key)) {
     fprintf(stderr, "Invalid key: %s\n", argv[1]);
@@ -53,39 +63,72 @@ int main(int argc, char **argv)
   // Set up the AES context using the AES library.
   AESContext ctx;
   AES_init_ctx_iv(&ctx, key, iv);
-
-  // Perform the encryption.
-  // Read the plaintext from stdin (via a pipe) and encode the chunks of data which are received.
-  // Encode is a call to the AES library.
-  uint8_t buffer[1024];
-  size_t idx = 0;
-  for (;;) { //poll stdin
-    size_t count = sizeof(buffer) - idx;
-    ssize_t len = read(0, buffer + idx, count); //read data from stdin
-    if (len < 0) {
-      perror("read failed");
+  
+  // Load the input data.
+  uint8_t *data;
+  off_t length;
+  {
+    int fd = open(argv[3], O_RDONLY);
+    if (fd < 0) {
+      perror("Cannot open input file");
       return EXIT_FAILURE;
     }
 
-    if (len < count) {
-      if (isatty(0)) {
-        if (buffer[idx + len - 1] == '\n') {
-          len -= 1;
-        } else {
-          encode(&ctx, buffer, idx + len);
-          return EXIT_FAILURE;
-        }
-      } else {
-        encode(&ctx, buffer, idx + len);
-        return EXIT_SUCCESS;
-      }
+    struct stat st;
+    if (fstat(fd, &st)) {
+      perror("Cannot stat input file");
+      return EXIT_FAILURE;
+    }
+    
+    length = st.st_size;
+    data = (uint8_t*) malloc(length);
+    if (read(fd, data, length) != length) {
+      perror("Cannot read input file.");
+    }
+  
+    close(fd);
+  }
+  
+  time_t t;
+  struct tm *tm;
+  
+  sleep(3);
+  t = time(NULL);
+  tm = localtime(&t);
+  printf("%02d:%02d:%02d ", tm->tm_hour, tm->tm_min, tm->tm_sec);
+  
+  // Encrypt in the timed portion. before this, we wait a bit and idle
+  // in order to get more stable power measurements.
+  double dt;
+  {
+    const clock_t start = clock();
+    encode(&ctx, data, length);
+    const clock_t end = clock();
+  
+    dt = (double)(end - start) / CLOCKS_PER_SEC;
+  }
+  
+  t = time(NULL);
+  tm = localtime(&t);
+  printf("%02d:%02d:%02d %f\n", tm->tm_hour, tm->tm_min, tm->tm_sec, dt);
+  sleep(3);
+
+  // Write the output, if there's a file name specified.
+  if (argc >= 4) {
+    int fd = open(argv[3], O_WRONLY | O_CREAT, 0666);
+    if (fd < 0) {
+      perror("Cannot open output file.");
+      return EXIT_FAILURE;
     }
 
-    idx += len;
-    if (idx == sizeof(buffer)) {
-      encode(&ctx, buffer, sizeof(buffer));
-      idx = 0;
+    if (write(fd, data, length) != length) {
+      perror("Cannot write output.");
+      return EXIT_FAILURE;
     }
+    
+    close(fd);
   }
+
+  return EXIT_SUCCESS;
 }
 
