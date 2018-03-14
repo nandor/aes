@@ -16,13 +16,19 @@ aes_dev::aes_dev(sc_module_name moduleName)
   , pw_module()
   , read_bus_tracker(this)
 {
-  //latency = sc_time(200, SC_NS); // Assume connected to a slow I/O external bus.
-  // Bind to the target socket. The method pointed to will be invoked when this port's 8-byte address is read or written to.
+  // Bind to the target socket. The b_access method pointed to will be invoked when port0's 8-byte address is read or written to.
   port0.register_b_transport(this, &aes_dev::b_access); 
-  reset(); //custom method which clears all the variables
+  reset(); //Clear all the variables used for AES encryption.
 
-  // Simulate the area. Based on: just copied from sram64_cbg.cpp
-  //set_fixed_area(pw_area(13359.0 + 4.93/8 * m_bits, PW_squm));
+  // Simulate the area. Arbitrary area currently. 
+  set_fixed_area(pw_area(13359, PW_squm));
+
+  // Reset AES power parameters such as how much power is used for reads and writes.
+  recompute_aes_pvt_parameters();
+
+  //Customer_ids[0] = new pw_customer_id(m_module, "AES", 0);
+  //a_customer_observer = Customer_ids[0]->get_observer();
+  //sc_pwr::trace_t m  = no_children;
 
 }
 
@@ -32,18 +38,36 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
   // Get the transaction time.
   const sc_time transTime = trans.ltd.point();  
 
+  // Put a customer number in a transaction
+  //PW_TLM3(trans.set_customer_acct(*Customer_ids[0])); //causes a segfault
+  
+  // At various places, use the following to record energy, not only against
+  // the local structural observers, but also against the customer noted in
+  // the payload.
+  //POWER3(record_energy_use(pw_energy(5.0, pw_energy_unit::PW_pJ)));
+
+  //Set up a power agent to record the amount of energy used for this transaction.
+  tlm::tlm_command cmd = trans.get_command();
+  POWER3(PW_TLM3(pw_agent_record l_agent = PW_TLM3(trans.pw_log_hop(this,  (cmd==tlm::TLM_READ_COMMAND ? PW_TGP_DATA: PW_TGP_NOFIELDS) | PW_TGP_ACCT_CKP,  &read_bus_tracker))));
+
+  //Start the energy count at 0
+  POWER3(pw_energy op_energy = PW_ZERO_ENERGY);
+
+
   // This device only supports reads and writes.
   bool isRead; 
   switch (trans.get_command()) {
     case tlm::TLM_READ_COMMAND: {
       //the transaction received is a read
       trans.ltd += kReadTime;
+      POWER3(op_energy += m_read_energy_op);
       isRead = true;
       break;
     }
     case tlm::TLM_WRITE_COMMAND: {
       //the transaction received is a write
       trans.ltd += kWriteTime;
+      POWER3(op_energy += m_write_energy_op);
       isRead = false;
       break;
     }
@@ -167,6 +191,12 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       return;
     }
   }
+  //Record the amount of energy usage for this transaction.
+#if PW_TLM_PAYLOAD > 0
+  POWER3(l_agent.record_energy_use(op_energy, &trans));
+#else
+  POWER3(record_energy_use(op_energy, &trans));
+#endif
 }
 
 
@@ -248,3 +278,24 @@ void aes_dev::handle_noc_rx(const sc_time &time)
   }
 }
 
+
+void aes_dev::recompute_aes_pvt_parameters() // Called when Vcc is changed and so on.
+//File originated from sram64_cbg.cpp.
+{
+  //Hardcoded values are arbitrary for testing purposes.
+  sc_time l_latency = sc_time(0.21, SC_NS);
+#ifdef TLM_POWER3
+  pw_power l_leakage = pw_power(82.0, PW_nW);
+  set_static_power(l_leakage);
+  
+  m_read_energy_op = pw_energy(5.0, pw_energy_unit::PW_uJ);
+  m_write_energy_op = 2.0 * m_read_energy_op; // rule of thumb
+
+  pw_voltage vcc = get_vcc();
+  assert(vcc != PW_ZERO_VOLT);
+  cout << name () << ":" << kind() << ": basic latency = " << l_latency << " before considering Vcc=" << vcc << "\n";
+  l_latency = l_latency / vcc.to_volts();
+#endif
+  cout << name () << ":" << kind() << ": final latency = " << l_latency << "\n";
+  set_latency(l_latency);
+}

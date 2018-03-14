@@ -14,16 +14,26 @@
 
 
 
-class aes_dev : public sc_module, public pw_module
+class aes_dev: public sc_module, public pw_module
 {
 public:
-  tlm_utils::multi_passthrough_target_socket<aes_dev, 64, PW_TLM_TYPES> port0;  
+  tlm_utils::multi_passthrough_target_socket<aes_dev, 64, PW_TLM_TYPES> port0; 
   
   SC_CTOR(aes_dev);
-  
+
+  void set_latency(sc_time l) { m_latency = l; }  
+  void recompute_aes_pvt_parameters();
+
   void b_access(int id, PRAZOR_GP_T &trans, sc_time &delay);
-  
+
+  sc_module *m_module;
+
 private:  
+  pw_energy m_read_energy_op, m_write_energy_op; 
+  sc_time m_latency; // Time per word (assuming fully pipelined - i.e initial latency would be longer by n times)
+  sc_pwr::pw_customer_id *Customer_ids[0];
+  sc_pwr::pw_accounting_base *a_customer_observer;
+  
   void reset();
   bool rx_ready();
   void handle_noc_rx(const sc_time &time);
