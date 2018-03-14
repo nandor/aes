@@ -94,3 +94,28 @@ Next, the following changes must be made to Prazor:
 
 
 Whenever you are building Prazor, make sure you are in the vhls directory and type *autoreconf* followed by *./configure  TLM_POWER3=$TLM_POWER3 --with-tlm-power --with-speedo  --host=x86_64-pc-linux-gnu* ensuring all your environment variables are set properly.
+
+Benchmarking and Changing Frequency on the FPGA
+======
+
+To change the FPGA frequency:
+
+	devmem2 0xF8000170 w 0x100400
+
+Change the number 4 in 0x100400 to change what you divide the frequency by. The clock normally runs at 1GHz.
+
+To change the ARM CPU frequency:
+
+	devmem2 0xF8000120 w 0x1F000400
+
+ARM normally runs at 666MHz.
+
+To measure reads:
+
+	./kiwi-ksubs3/kiwi-ksubs3-server/ksubs3.1-server -pio-performance -1000000
+
+To measure writes:
+
+	./kiwi-ksubs3/kiwi-ksubs3-server/ksubs3.1-server -pio-performance 1000000
+
+where kiwi-ksubs3 is the repo originally at https://bitbucket.org/djg11/kiwi-ksubs3.git and now on Nandor's parcard account.

@@ -1,3 +1,4 @@
+/* Based on src/io/uart64_cbg.cpp */
 
 #include "aes_dev.h"
 #include "aes_lib.h"
@@ -8,44 +9,52 @@ const sc_time kCycle(kScale, SC_NS);
 const sc_time kWriteTime(170, SC_NS);
 const sc_time kReadTime = kWriteTime * 0.8;
 
-
+// Constructor
 aes_dev::aes_dev(sc_module_name moduleName)
   : sc_module(moduleName)
   , pw_module()
   , read_bus_tracker(this)
 {
-  port0.register_b_transport(this, &aes_dev::b_access);
-  reset();
+  latency = sc_time(200, SC_NS); // Assume connected to a slow I/O external bus.
+  // Bind to the target socket. The method pointed to will be invoked when this port's 8-byte address is read or written to.
+  port0.register_b_transport(this, &aes_dev::b_access); 
+  reset(); //clears everything
+  // Simulate the area. Based on: just made up!
+  set_excess_area(pw_length(450, PW_um), pw_length(150, PW_um));
 }
+
 
 void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
 {
-  // Transaction time.
+  // Get the transaction time.
   const sc_time transTime = trans.ltd.point();  
 
-  // This device only supports read/write.
-  bool isRead;
+  // This device only supports reads and writes.
+  bool isRead; 
   switch (trans.get_command()) {
     case tlm::TLM_READ_COMMAND: {
+      //the transaction received is a read
       trans.ltd += kReadTime;
       isRead = true;
       break;
     }
     case tlm::TLM_WRITE_COMMAND: {
+      //the transaction received is a write
       trans.ltd += kWriteTime;
       isRead = false;
       break;
     }
     default: {
+      //error
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
       return;
     }
   }
   
-  // Handle reads/writes to specific registers.
+  // Handle reads/writes to specific registers based on the address passed in the transaction.
   uint32_t *const ptr = (uint32_t*)trans.get_data_ptr();
   switch ((trans.get_address() - AES_BASE_ADDR) / 8) {
-    // PIO_STATUS
+    // PIO_STATUS register
     case 0: {
       if (isRead) {
         *ptr = 0;
@@ -53,7 +62,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
     }
-    // PIO_CTRL
+    // PIO_CTRL register
     case 2: {
       // Writing 0 to a specific bit resets the module, writing 1 starts it.
       if (isRead) {
@@ -69,7 +78,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
     }
-    // PIO_TX_LO
+    // PIO_TX_LO register
     case 8: {
       if (isRead) {
         *ptr = txLo_;
@@ -78,7 +87,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
     }
-    // PIO_TX_HI
+    // PIO_TX_HI register
     case 9: {
       if (isRead) {
         *ptr = txHi_;
@@ -87,7 +96,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
     }
-    // PIO_TX_ST
+    // PIO_TX_ST register
     case 10: {
       if (isRead) {
         Buffer *buf = &b[currentRd_];
@@ -118,7 +127,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
     }
-    // PIO_RX_LO
+    // PIO_RX_LO register
     case 12: {
       if (!isRead) {
         rxLo_ = *ptr;
@@ -128,7 +137,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
     }
-    // PIO_RX_HI
+    // PIO_RX_HI register
     case 13: {
       if (!isRead) {
         rxHi_ = *ptr;
@@ -138,7 +147,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
     }
-    // PIO_RX_ST
+    // PIO_RX_ST register
     case 14: {
       if (isRead) {
         *ptr = rx_ready() ? (1 << 8) : 0;
@@ -156,6 +165,9 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
     }
   }
 }
+
+
+/* Begin helper methods */
 
 void aes_dev::reset()
 {
