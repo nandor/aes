@@ -2,8 +2,11 @@
 #include "aes_dev.h"
 #include "aes_lib.h"
 
-const sc_time kCycle(10, SC_NS);
+constexpr int kScale = 10;
 
+const sc_time kCycle(kScale, SC_NS);
+const sc_time kWriteTime(170, SC_NS);
+const sc_time kReadTime = kWriteTime * 0.8;
 
 
 aes_dev::aes_dev(sc_module_name moduleName)
@@ -17,14 +20,19 @@ aes_dev::aes_dev(sc_module_name moduleName)
 
 void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
 {
+  // Transaction time.
+  const sc_time transTime = trans.ltd.point();  
+
   // This device only supports read/write.
   bool isRead;
   switch (trans.get_command()) {
     case tlm::TLM_READ_COMMAND: {
+      trans.ltd += kReadTime;
       isRead = true;
       break;
     }
     case tlm::TLM_WRITE_COMMAND: {
+      trans.ltd += kWriteTime;
       isRead = false;
       break;
     }
@@ -86,10 +94,10 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
         if (buf->wr != 16) {
           *ptr = 0;
         } else {
-          const unsigned delta = (trans.ltd.point() - buf->time) / kCycle;
-          if (delta < 11) {
+          const unsigned delta = (transTime - buf->time) / kCycle;
+          if (delta < 20) {
             *ptr = 0;
-          } else { 
+          } else {
             if (buf->rd == 0) {
               AES_encrypt_block(rk_, iv_, buf->data);
               txLo_ = *((uint32_t *)(buf->data + 0));
@@ -115,7 +123,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       if (!isRead) {
         rxLo_ = *ptr;
         rxReady_ |= 1 << 0;
-        handle_noc_rx(trans.ltd.point());
+        handle_noc_rx(transTime);
       }
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
@@ -125,7 +133,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       if (!isRead) {
         rxHi_ = *ptr;
         rxReady_ |= 1 << 1;
-        handle_noc_rx(trans.ltd.point());
+        handle_noc_rx(transTime);
       }
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
@@ -137,8 +145,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       } else {
         rxCmd_ = *ptr & 0xFF;
         rxReady_ |= 1 << 2;
-        handle_noc_rx(trans.ltd.point());
-        trans.ltd += kCycle;
+        handle_noc_rx(transTime);
       }
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
