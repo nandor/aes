@@ -1,8 +1,3 @@
-TODO
-======
-
-* Figure out why the Prazor output differs from the Unix output. The problem is likely due to the way Prazor handles zero bytes, i.e. 00. One possible fix is to change line 2822 in src/arm/armisa.cpp, which may solve the problem.
-
 unix
 ======
 
