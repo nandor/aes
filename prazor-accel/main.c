@@ -133,7 +133,7 @@ int main(int argc, char **argv)
   int length;
   while (!_syscall_refill(fi, &length, buffer, sizeof(buffer))) {
     encode(&ctx, buffer, length);
-    _syscall_flush(fo, buffer, length);
+    _syscall_flush(fo, buffer, (length + 0xF) & ~0xF);
   } 
  
   _syscall_fclose(fi);
