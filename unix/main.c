@@ -40,8 +40,8 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 
 int main(int argc, char **argv)
 {
-  // argv[1] = key, argv[2] = IV
-  if (argc < 3 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
+  // argv[1] = key, argv[2] = IV, argv[3] = input
+  if (argc < 4 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
     fprintf(stderr, "Usage: %s {key} {iv}\n", argc == 1 ? argv[0] : "aes");
     return EXIT_FAILURE;
   }
