@@ -10,7 +10,7 @@ C library of AES encryption based on the tiny-C-aes library, *aes.c* and *aes.h*
 
 Usage:
 
-cat plaintext | ./aes 11223344556677889900112233445566 11223344556677889900112233445566 > output.txt 
+./aes 11223344556677889900112233445566 11223344556677889900112233445566 plaintext output.txt 
 
 where plaintext is a file containing the plaintext you want to encrypt and output.txt is the resulting ciphertext.
 
@@ -26,7 +26,7 @@ Make sure the correct bitfile is loaded onto the card (using MD5 checksums of th
 
 Usage:
 
-cat plaintext | ./client 11223344556677889900112233445566 11223344556677889900112233445566 > output.txt
+./client 11223344556677889900112233445566 11223344556677889900112233445566 plaintext output.txt
 
 where plaintext is a file containing the plaintext you want to encrypt and output.txt is the resulting ciphertext.
 
