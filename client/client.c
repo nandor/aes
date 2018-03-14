@@ -155,6 +155,7 @@ int main(int argc, char **argv)
   // Load the input data.
   uint8_t *data;
   off_t length;
+  size_t padded;
   {
     int fd = open(argv[3], O_RDONLY);
     if (fd < 0) {
@@ -169,7 +170,8 @@ int main(int argc, char **argv)
     }
     
     length = st.st_size;
-    data = (uint8_t*) malloc(length);
+    padded = (length + 0xF) & ~0xF;
+    data = (uint8_t*) malloc(padded);
     if (read(fd, data, length) != length) {
       perror("Cannot read input file.");
     }
@@ -203,14 +205,14 @@ int main(int argc, char **argv)
   sleep(3);
 
   // Write the output, if there's a file name specified.
-  if (argc >= 4) {
-    int fd = open(argv[3], O_WRONLY | O_CREAT, 0666);
+  if (argc >= 5) {
+    int fd = open(argv[4], O_WRONLY | O_CREAT, 0666);
     if (fd < 0) {
       perror("Cannot open output file.");
       return EXIT_FAILURE;
     }
 
-    if (write(fd, data, length) != length) {
+    if (write(fd, data, padded) != padded) {
       perror("Cannot write output.");
       return EXIT_FAILURE;
     }
