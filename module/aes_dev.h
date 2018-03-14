@@ -21,18 +21,20 @@ public:
   
   SC_CTOR(aes_dev);
 
-  void set_latency(sc_time l) { m_latency = l; }  
   void recompute_aes_pvt_parameters();
 
   void b_access(int id, PRAZOR_GP_T &trans, sc_time &delay);
 
   sc_module *m_module;
 
-private:  
-  pw_energy m_read_energy_op, m_write_energy_op; 
-  sc_time m_latency; // Time per word (assuming fully pipelined - i.e initial latency would be longer by n times)
-  sc_pwr::pw_customer_id *Customer_ids[0];
-  sc_pwr::pw_accounting_base *a_customer_observer;
+private:
+  sc_time cycleLatency_; 
+  sc_time readLatency_;
+  sc_time writeLatency_;
+ 
+  pw_energy readEnergy_;
+  pw_energy writeEnergy_;
+  pw_energy cycleEnergy_; 
   
   void reset();
   bool rx_ready();
@@ -66,7 +68,7 @@ private:
   uint8_t currentWr_;
   uint8_t currentRd_;
  
-  POWER3(PW_TLM3(sc_pwr::tlm_bit_transition_tracker read_bus_tracker));
+  sc_pwr::tlm_bit_transition_tracker read_bus_tracker;
 };
 
 #endif /* AES_H */
