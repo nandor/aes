@@ -1,4 +1,5 @@
-/* Based on src/io/uart64_cbg.cpp */
+/* AES device which talks to the rest of Prazor using TLM 2.0 Transactions.
+File is based on src/io/uart64_cbg.cpp, with area and power taken from src/memories/sram64_cbg.cpp */
 
 #include "aes_dev.h"
 #include "aes_lib.h"
@@ -15,12 +16,14 @@ aes_dev::aes_dev(sc_module_name moduleName)
   , pw_module()
   , read_bus_tracker(this)
 {
-  latency = sc_time(200, SC_NS); // Assume connected to a slow I/O external bus.
+  //latency = sc_time(200, SC_NS); // Assume connected to a slow I/O external bus.
   // Bind to the target socket. The method pointed to will be invoked when this port's 8-byte address is read or written to.
   port0.register_b_transport(this, &aes_dev::b_access); 
-  reset(); //clears everything
-  // Simulate the area. Based on: just made up!
-  set_excess_area(pw_length(450, PW_um), pw_length(150, PW_um));
+  reset(); //custom method which clears all the variables
+
+  // Simulate the area. Based on: just copied from sram64_cbg.cpp
+  //set_fixed_area(pw_area(13359.0 + 4.93/8 * m_bits, PW_squm));
+
 }
 
 

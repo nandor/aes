@@ -1,6 +1,5 @@
-# Copyright (C) 2015 XPARCH, Ltd. <info@xparch.com>
 #
-# Hello World - most simple program possible.   If using just writes it should compile without even libc and should either use a putchar ISS backdoor or else write to the uart using craft_wrch.
+# Based on the Makefile for Hello World - most simple program possible.
 #
 
 
@@ -19,7 +18,7 @@ IV=00112233445566778899aabbccddeeff
 CFLAGS += -DUNICORE -I../unix -O3
 
 EXTRALIBS += 
-
+# The command to actually start with simulator, with multiple options which can be configured
 CMD=$(SIM) $(DRAM_FLAGS) \
     -self-starting-cores 1 \
     -global-qk-ns 100 \
