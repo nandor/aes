@@ -128,6 +128,12 @@ Whenever you are building Prazor, make sure you are in the vhls directory and ty
 
 To correctly measure power on Prazor and have the output go to nominal.power.txt, add POWER3_TRC_2(aes0, "AES") to near line 567 in zynq.cpp.
 
+test
+======
+
+Contains test input and output files to prove that the accelerator works on all the different platforms. .bin files are the raw output file before the hexdump, and .txt files are the output after the hexdump.
+
+
 Benchmarking and Changing Frequency on the FPGA
 ======
 
