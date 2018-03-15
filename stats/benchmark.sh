@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# Runs benchmark on the Parallela card.
 
 KEY=00112233445566778899aabbccddeeff
 FILE=input16.txt

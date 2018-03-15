@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Processes energy and time log files and computes stats from them.
 
 from collections import defaultdict
 from dateutil.parser import parse

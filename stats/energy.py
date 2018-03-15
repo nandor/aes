@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#Makes energy read measurements using bognor.
 
 import socket
 import time
