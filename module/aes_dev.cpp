@@ -285,21 +285,9 @@ void aes_dev::recompute_aes_pvt_parameters()
     // 250Mhz
     case 4: {
       switch (armGrade) {
-        // 666Mhz
-        case 1: {
-          writeLatency_ = sc_time(91, SC_NS);
-          break;
-        }
-        // 333Mhz
-        case 2: {
-          writeLatency_ = sc_time(145, SC_NS);
-          break;
-        }
-        // 166Mhz
-        case 4: {
-          writeLatency_ = sc_time(257, SC_NS);
-          break;
-        }
+        /* 666MHz */ case 1: writeLatency_ = sc_time(103, SC_NS); break;
+        /* 333MHz */ case 2: writeLatency_ = sc_time(163, SC_NS); break;
+        /* 166MHz */ case 4: writeLatency_ = sc_time(291, SC_NS); break;
       }
       cycleLatency_ = sc_time(4, SC_NS); 
       break;
@@ -307,21 +295,9 @@ void aes_dev::recompute_aes_pvt_parameters()
     // 200Mhz
     case 5: {
       switch (armGrade) {
-        // 666Mhz
-        case 1: {
-          writeLatency_ = sc_time(95, SC_NS);
-          break;
-        }
-        // 333Mhz
-        case 2: {
-          writeLatency_ = sc_time(155, SC_NS);
-          break;
-        }
-        // 166Mhz
-        case 4: {
-          writeLatency_ = sc_time(261, SC_NS);
-          break;
-        }
+        /* 666MHz */ case 1: writeLatency_ = sc_time(114, SC_NS); break;
+        /* 333MHz */ case 2: writeLatency_ = sc_time(175, SC_NS); break;
+        /* 166MHz */ case 4: writeLatency_ = sc_time(294, SC_NS); break;
       }
       cycleLatency_ = sc_time(5, SC_NS); 
       break;
@@ -329,21 +305,9 @@ void aes_dev::recompute_aes_pvt_parameters()
     // 166Mhz
     case 6: {
       switch (armGrade) {
-        // 666Mhz
-        case 1: {
-          writeLatency_ = sc_time(113, SC_NS);
-          break;
-        }
-        // 333Mhz
-        case 2: {
-          writeLatency_ = sc_time(164, SC_NS);
-          break;
-        }
-        // 166Mhz
-        case 4: {
-          writeLatency_ = sc_time(274, SC_NS);
-          break;
-        }
+        /* 666MHz */ case 1: writeLatency_ = sc_time(125, SC_NS); break;
+        /* 333MHz */ case 2: writeLatency_ = sc_time(186, SC_NS); break;
+        /* 166MHz */ case 4: writeLatency_ = sc_time(309, SC_NS); break;
       }
       cycleLatency_ = sc_time(6, SC_NS); 
       break;
@@ -351,21 +315,9 @@ void aes_dev::recompute_aes_pvt_parameters()
     // 100Mhz
     case 10: {
       switch (armGrade) {
-        // 666Mhz
-        case 1: {
-          writeLatency_ = sc_time(151, SC_NS);
-          break;
-        }
-        // 333Mhz
-        case 2: {
-          writeLatency_ = sc_time(203, SC_NS);
-          break;
-        }
-        // 166Mhz
-        case 4: {
-          writeLatency_ = sc_time(310, SC_NS);
-          break;
-        }
+        /* 666MHz */ case 1: writeLatency_ = sc_time(168, SC_NS); break;
+        /* 333MHz */ case 2: writeLatency_ = sc_time(229, SC_NS); break;
+        /* 166MHz */ case 4: writeLatency_ = sc_time(350, SC_NS); break;
       }
       cycleLatency_ = sc_time(10, SC_NS); 
       break;
