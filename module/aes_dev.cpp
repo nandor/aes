@@ -16,7 +16,7 @@ aes_dev::aes_dev(sc_module_name moduleName)
   // be invoked when port0's 8-byte address is read or written to.
   port0.register_b_transport(this, &aes_dev::b_access); 
   
-  // Clear all the state used for AES encryption.
+  // Clear all the state variables used for AES encryption.
   reset(); 
 
   // Simulate the area. Arbitrary area currently. 
@@ -122,9 +122,9 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
           if (delta < 20) {
             *ptr = 0;
           } else {
-            // cycleEnergy_ is an estimate on the energy consumed on each
+            // cycleEnergy_ is an estimate of the energy consumed on each
             // Zynq clock cycle, this energy is only used when the device
-            // is encrypting stuff - we record this every 20 cycles,
+            // is encrypting data - we record this every 20 cycles,
             // whenever a block finishes processing.
             pwAgent.record_energy_use(cycleEnergy_ * 20, &trans);
             
@@ -185,7 +185,7 @@ void aes_dev::b_access(int id, PRAZOR_GP_T &trans, sc_time &delay_)
       return;
     }
   }
-}
+} //end b_access
 
 
 /* Begin helper methods */
@@ -214,7 +214,7 @@ bool aes_dev::rx_ready()
 
 void aes_dev::handle_noc_rx(const sc_time &time)
 {
-  // Bail out if device not running.
+  // Bail out if device is not running.
   if (!running_) {
     return;
   }
@@ -228,7 +228,7 @@ void aes_dev::handle_noc_rx(const sc_time &time)
   // Read the 64-bit input.
   const uint64_t data = ((uint64_t)rxHi_ << 32ull) | ((uint64_t)rxLo_ << 0ull);
   
-  // Handle individual commants.
+  // Handle individual commands.
   switch (rxCmd_) {
     // SET_RK
     case 0: {
@@ -267,8 +267,8 @@ void aes_dev::handle_noc_rx(const sc_time &time)
 }
 
 
-/**
- * File originated from sram64_cbg.cpp.
+/*
+ * Method originated from sram64_cbg.cpp.
  * Called when Vcc is changed and so on.
  */
 void aes_dev::recompute_aes_pvt_parameters() 
@@ -282,9 +282,9 @@ void aes_dev::recompute_aes_pvt_parameters()
   readLatency_ = writeLatency_ * 0.8;
   cycleLatency_ = sc_time(10, SC_NS); 
   
-  // Read/write energy counts.
+  // Read/write/cycle energy counts.
   readEnergy_ = pw_energy(5.0, pw_energy_unit::PW_pJ);
-  writeEnergy_ = 2.0 * readEnergy_;
+  writeEnergy_ = 2.0 * readEnergy_; //rule of thumb
   cycleEnergy_ = pw_energy(2.21, pw_energy_unit::PW_nJ);
 }
 
