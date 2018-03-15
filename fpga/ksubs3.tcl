@@ -96,7 +96,7 @@ create_clock -period 6.000 -name my_main_clock [get_nets zynq_axi_master_i/ACLK]
 
 #write_checkpoint -force $outputDir/post_synth.dcp
 #report_timing_summary -datasheet -file $outputDir/post_synth_timing_summary.rpt
-report_utilization -file $outputDir/post_synth_util.rpt
+#report_utilization -file $outputDir/post_synth_util.rpt
 
 # Run custom script to report critical timing paths
 # reportCriticalPaths $outputDir/post_synth_critpath_report.csv
@@ -109,7 +109,7 @@ report_utilization -file $outputDir/post_synth_util.rpt
 opt_design
 #reportCriticalPaths $outputDir/post_opt_critpath_report.csv
 place_design
-report_clock_utilization -file $outputDir/clock_util.rpt
+#report_clock_utilization -file $outputDir/clock_util.rpt
 #
 
 # Optionally run optimization if there are timing violations after placement
@@ -119,7 +119,7 @@ if {[get_property SLACK [get_timing_paths -max_paths 1 -nworst 1 -setup]] < 0} {
 }
 
 #write_checkpoint -force $outputDir/post_place.dcp
-report_utilization -file $outputDir/post_place_util.rpt
+#report_utilization -file $outputDir/post_place_util.rpt
 
 #report_timing_summary -file $outputDir/post_place_timing_summary.rpt
 
@@ -130,15 +130,22 @@ report_utilization -file $outputDir/post_place_util.rpt
 route_design
 
 #write_checkpoint -force $outputDir/post_route.dcp
-report_route_status -file $outputDir/post_route_status.rpt
+#report_route_status -file $outputDir/post_route_status.rpt
 
 # ACLK is 100 MHz at the moment. 
-create_clock -period 6.000 -name my_main_clock [get_nets zynq_axi_master_i/ACLK]
+#create_clock -period 6.000 -name my_main_clock [get_nets zynq_axi_master_i/ACLK]
 report_timing_summary -file $outputDir/post_route_timing_summary.rpt -report_unconstrained
 
 
 
-report_power -file $outputDir/post_route_power.rpt
+create_clock -period 4.000 -name my_main_clock [get_nets zynq_axi_master_i/ACLK]
+report_power -file $outputDir/power_4.rpt
+create_clock -period 5.000 -name my_main_clock [get_nets zynq_axi_master_i/ACLK]
+report_power -file $outputDir/power_5.rpt
+create_clock -period 6.000 -name my_main_clock [get_nets zynq_axi_master_i/ACLK]
+report_power -file $outputDir/power_6.rpt
+create_clock -period 10.000 -name my_main_clock [get_nets zynq_axi_master_i/ACLK]
+report_power -file $outputDir/power_10.rpt
 #report_drc -file $outputDir/post_imp_drc.rpt
 #write_verilog -force $outputDir/topfpga_impl_netlist.v -mode timesim -sdf_anno true
 #
