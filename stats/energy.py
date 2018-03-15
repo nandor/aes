@@ -24,12 +24,11 @@ while True:
     v1 = v1c - v1p
     v5 = v5c - v5p
     v1p, v5p = v1c, v5c
-    
+
     if v5 != 0 and v1 != 0:
-      print('%f, %d, %d' % (time.time() - t0, v5,  v1))
+      print time.time() - t0, ',', v5, ',',  v1
       sys.stdout.flush()
-  
-  time.sleep(0.01)
+
+  time.sleep(0.5)
 
 s.close()
-
