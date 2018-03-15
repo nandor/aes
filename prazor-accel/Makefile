@@ -23,7 +23,8 @@ CMD=$(SIM) $(DRAM_FLAGS) \
     -self-starting-cores 1 \
     -global-qk-ns 100 \
     -tracelevel 0 \
-    -core-frequency 666
+    -core-frequency 166 \
+    -zynq-frequency 100
 
 
 aes: $(LIBS) aes.o main.o $(CRT1) $(EXTRALIBS)
