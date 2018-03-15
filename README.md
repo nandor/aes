@@ -160,3 +160,8 @@ To measure writes:
 	./kiwi-ksubs3/kiwi-ksubs3-server/ksubs3.1-server -pio-performance 1000000
 
 where kiwi-ksubs3 is the repo originally at https://bitbucket.org/djg11/kiwi-ksubs3.git and now on Nandor's parcard account.
+
+Other changes
+=======
+
+change src/vhls.cpp to make the changes for the Prazor command line argument to change the Zynq frequency (~line 235).
