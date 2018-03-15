@@ -1,4 +1,4 @@
-/* AES device which talks to the rest of Prazor using TLM 2.0 Transactions.
+/* AES device which talks to the rest of Prazor using TLM 3.0 Transactions.
 File is based on src/io/uart64_cbg.cpp, with area and power taken from src/memories/sram64_cbg.cpp */
 
 #include "aes_dev.h"
@@ -266,6 +266,9 @@ void aes_dev::handle_noc_rx(const sc_time &time)
   }
 }
 
+extern double g_core_frequency;
+extern double g_zynq_frequency;
+
 
 /*
  * Method originated from sram64_cbg.cpp.
@@ -276,11 +279,104 @@ void aes_dev::recompute_aes_pvt_parameters()
   // Hardcoded values are arbitrary for testing purposes.
   pw_power l_leakage = pw_power(82.0, PW_nW);
   set_static_power(l_leakage);
+
+  // Find out the speed grades, based on frequencies.
+  const int zynqGrade = 1000 * 1e6 / g_zynq_frequency;
+  const int armGrade = 666 * 1e6 / g_core_frequency;
  
   // Latencies which depend on ARM and Zynq clock rates.
-  writeLatency_ = sc_time(150, SC_NS);
+  switch (zynqGrade) {
+    // 250Mhz
+    case 4: {
+      switch (armGrade) {
+        // 666Mhz
+        case 1: {
+          writeLatency_ = sc_time(91, SC_NS);
+          break;
+        }
+        // 333Mhz
+        case 2: {
+          writeLatency_ = sc_time(145, SC_NS);
+          break;
+        }
+        // 166Mhz
+        case 4: {
+          writeLatency_ = sc_time(257, SC_NS);
+          break;
+        }
+      }
+      cycleLatency_ = sc_time(4, SC_NS); 
+      break;
+    }
+    // 200Mhz
+    case 5: {
+      switch (armGrade) {
+        // 666Mhz
+        case 1: {
+          writeLatency_ = sc_time(95, SC_NS);
+          break;
+        }
+        // 333Mhz
+        case 2: {
+          writeLatency_ = sc_time(155, SC_NS);
+          break;
+        }
+        // 166Mhz
+        case 4: {
+          writeLatency_ = sc_time(261, SC_NS);
+          break;
+        }
+      }
+      cycleLatency_ = sc_time(5, SC_NS); 
+      break;
+    }
+    // 166Mhz
+    case 6: {
+      switch (armGrade) {
+        // 666Mhz
+        case 1: {
+          writeLatency_ = sc_time(113, SC_NS);
+          break;
+        }
+        // 333Mhz
+        case 2: {
+          writeLatency_ = sc_time(164, SC_NS);
+          break;
+        }
+        // 166Mhz
+        case 4: {
+          writeLatency_ = sc_time(274, SC_NS);
+          break;
+        }
+      }
+      cycleLatency_ = sc_time(6, SC_NS); 
+      break;
+    }
+    // 100Mhz
+    case 10: {
+      switch (armGrade) {
+        // 666Mhz
+        case 1: {
+          writeLatency_ = sc_time(151, SC_NS);
+          break;
+        }
+        // 333Mhz
+        case 2: {
+          writeLatency_ = sc_time(203, SC_NS);
+          break;
+        }
+        // 166Mhz
+        case 4: {
+          writeLatency_ = sc_time(310, SC_NS);
+          break;
+        }
+      }
+      cycleLatency_ = sc_time(10, SC_NS); 
+      break;
+    }
+  }
+  
   readLatency_ = writeLatency_ * 0.8;
-  cycleLatency_ = sc_time(10, SC_NS); 
   
   // Read/write/cycle energy counts.
   readEnergy_ = pw_energy(5.0, pw_energy_unit::PW_pJ);
