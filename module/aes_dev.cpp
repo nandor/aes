@@ -374,12 +374,13 @@ void aes_dev::recompute_aes_pvt_parameters()
   readLatency_ = writeLatency_ * 0.8;
   
   // Static power estimated by vivado.
-  set_static_power(pw_power(0.107, PW_W));
+  set_static_power(pw_power(0.107, PW_WATT));
 
-  const float energyScale = g_zynq_frequency / (100 * 10e6);
-  
-  cycleEnergy_ = pw_energy(0.124 * energyScale, pw_energy_unit::PW_nJ);
-  readEnergy_ = pw_energy(0.008 * energyScale, pw_energy_unit::PW_nJ);
+  const float energyScale = g_zynq_frequency / (100 * 1e6);
+    
+  // Plug in dynamic energies estimated from vivado, scaled by clock rates. 
+  cycleEnergy_ = pw_energy(1.24 * energyScale, pw_energy_unit::PW_nJ);
+  readEnergy_ = pw_energy(0.08 * energyScale, pw_energy_unit::PW_nJ);
   writeEnergy_ = readEnergy_;
 }
 

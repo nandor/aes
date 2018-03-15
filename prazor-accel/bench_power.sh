@@ -23,6 +23,7 @@ test() {
     $KEY $IV input.txt output.txt > /dev/null 2>&1
   echo $1 $2
   cat nominal.power.txt | grep TOPTHIS | grep -v W | awk '{print $4 * 2048, " ", $7 * 2048}'
+  cat nominal.power.txt | grep AES | grep -v W | awk '{print $4 * 2048, " ", $7 * 2048}'
 }
 
 test 666 250
