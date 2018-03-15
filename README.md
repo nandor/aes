@@ -54,35 +54,37 @@ Need to be change this file for the output work correctly: src/tenos/io_backdoor
 
 Specifically, make the following changes:
 
-[2:21 PM, 3/14/2018] Nandor: case 12: { /* fflush */
-2814   int i;
-2815
-2816   u32_t fbuf_addr = Reg(1);
-2817   int size = Reg(2);
-2818   char* buffer = (char*)malloc(sizeof(char)*size);
-2819
-2820   bzero(&buffer[0], size);
-2821   for (i = 0; i < size; ++i) {
-2822     armisa_read1(fbuf_addr++, 0, false, false);
-2823     char d = (char)read_data;
-2824     buffer[i] = d;
-2825   }
-2826
-2827   Reg(0) = io_backdoor_su->flush(Reg(0), buffer, size);
-2828   break;
-2829       }
-[2:21 PM, 3/14/2018] Nandor: 22   /* flush */
- 23   int flush(int fid, char* buf, int size);
- 24
-[2:21 PM, 3/14/2018] Nandor: 61 int io_backdoor_setup::flush(int fid, char* buf, int size) {
- 62   FILE *f;
- 63
- 64   f = files[fid];
- 65   fwrite(buf, size, 1, f);
- 66
- 67   return strlen(buf);
- 68 }
- 69
+	2813 case 12: { /* fflush */
+	2814   int i;
+	2815
+	2816   u32_t fbuf_addr = Reg(1);
+	2817   int size = Reg(2);
+	2818   char* buffer = (char*)malloc(sizeof(char)*size);
+	2819
+	2820   bzero(&buffer[0], size);
+	2821   for (i = 0; i < size; ++i) {
+	2822     armisa_read1(fbuf_addr++, 0, false, false);
+	2823     char d = (char)read_data;
+	2824     buffer[i] = d;
+	2825   }
+	2826
+	2827   Reg(0) = io_backdoor_su->flush(Reg(0), buffer, size);
+	2828   break;
+	2829       }
+
+	22   /* flush */
+	23   int flush(int fid, char* buf, int size);
+	24
+
+	61 int io_backdoor_setup::flush(int fid, char* buf, int size) {
+	62   FILE *f;
+	63
+	64   f = files[fid];
+	65   fwrite(buf, size, 1, f);
+	66
+	67   return strlen(buf);
+	68 }
+	69
 
 Prazor implementation of AES encryption without any acceleration. Uses the AES library from the Unix folder.  The key and IV are specified in the Makefile.
 
@@ -123,6 +125,8 @@ Next, the following changes must be made to Prazor:
 
 
 Whenever you are building Prazor, make sure you are in the vhls directory and type *autoreconf* followed by *./configure  TLM_POWER3=$TLM_POWER3 --with-tlm-power --with-speedo  --host=x86_64-pc-linux-gnu* ensuring all your environment variables are set properly.
+
+To correctly measure power on Prazor and have the output go to nominal.power.txt, add POWER3_TRC_2(aes0, "AES") to near line 567 in zynq.cpp.
 
 Benchmarking and Changing Frequency on the FPGA
 ======
