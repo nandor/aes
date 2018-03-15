@@ -42,10 +42,12 @@ If the image was successfully loaded, typing the following should return 1:
 	cat /sys/devices/amba.0/f8007000.ps7-dev-cfg/prog_done
 
 
-monitor
+stats
 ======
 
 Contains code to collect power information from the Parallela card running in FN12 (parcard-djg1.sm) over Telnet.
+
+Also contains Python script to process text outputs and collect stats from outputs. Contains example outputs from Nandor.
 
 prazor-arm
 ======
