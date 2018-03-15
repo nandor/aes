@@ -20,7 +20,7 @@ test() {
     -image ./aes \
     -name nominal \
     -- \
-    $KEY $IV input.txt output.txt 2>&1 | grep Time | awk '{print $4 }')
+    $KEY $IV input.txt output.txt 2>&1 | grep Time | awk '{print $4 * 2048 * 1e-12 }')
   echo $1 $2 $FREQ
 }
 
