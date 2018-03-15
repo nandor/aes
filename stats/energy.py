@@ -29,6 +29,6 @@ while True:
       print time.time() - t0, ',', v5, ',',  v1
       sys.stdout.flush()
 
-  time.sleep(0.5)
+  time.sleep(0.1)
 
 s.close()
