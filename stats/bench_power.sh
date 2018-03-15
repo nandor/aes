@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 KEY=00112233445566778899aabbccddeeff
 IV=00112233445566778899aabbccddeeff
 
