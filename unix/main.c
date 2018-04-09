@@ -22,7 +22,7 @@
  */
 static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 {
-  //If the length is not 16, pad it
+  //If the length of the data is not a multiple of 16 bytes, pad it with 16 - length % 16
   if (length % 16 != 0) {
     char pad = 16 - length % 16;
     for (unsigned i = 0; i < pad; ++i) {
@@ -83,6 +83,7 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
     }
     length = st.st_size; //total size of the file, in bytes
+    //make the data buffer big enough so that we have room to add the padding later if we need to
     padded = (length + 0xF) & ~0xF;
     data = (uint8_t*) malloc(padded);
     //actually read the data from the input file
@@ -96,15 +97,15 @@ int main(int argc, char **argv)
   time_t t;
   struct tm *tm;
   
-  sleep(3);
+  sleep(3); //wait a bit and idle in order to get more stable power measurements.
   t = time(NULL);
-  tm = localtime(&t);
+  tm = localtime(&t); //used to correlate timings with power samples from Bognor
   printf("%02d:%02d:%02d ", tm->tm_hour, tm->tm_min, tm->tm_sec);
   
-  // Encrypt in the timed portion. Before this, we wait a bit and idle
-  // in order to get more stable power measurements.
+  // Encrypt in the timed portion.
   double dt;
-  
+
+  //The clock() function determines the amount of processor time used since the invocation of the calling process, measured in CLOCKS_PER_SECs of a second
   const clock_t start = clock();
   encode(&ctx, data, length); //perform the encryption
   const clock_t end = clock();
@@ -114,7 +115,6 @@ int main(int argc, char **argv)
   t = time(NULL);
   tm = localtime(&t);
   printf("%02d:%02d:%02d %f\n", tm->tm_hour, tm->tm_min, tm->tm_sec, dt);
-  sleep(3);
 
   // Write the output, if there's a file name specified.
   if (argc >= 5) {
