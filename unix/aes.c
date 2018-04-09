@@ -31,7 +31,11 @@ static const uint8_t Rcon[11] = {
 
 static void KeyExpansion(uint8_t* RoundKey, const uint8_t* Key)
 {
+  // Produces Nb(Nr+1) round keys. The round keys are used in each round to decrypt the states. 
+
   uint8_t tempa[4];
+
+  // The first round key is the key itself.
   for (unsigned i = 0; i < Nk; ++i) {
     RoundKey[(i * 4) + 0] = Key[(i * 4) + 0];
     RoundKey[(i * 4) + 1] = Key[(i * 4) + 1];
@@ -39,6 +43,7 @@ static void KeyExpansion(uint8_t* RoundKey, const uint8_t* Key)
     RoundKey[(i * 4) + 3] = Key[(i * 4) + 3];
   }
 
+  // All other round keys are found from the previous round keys.
   for (unsigned i = Nk; i < Nb * (Nr + 1); ++i) {
     unsigned k = (i - 1) * 4;
     tempa[0]=RoundKey[k + 0];

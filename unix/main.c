@@ -40,7 +40,7 @@ static void encode(AESContext *ctx, uint8_t *buf, size_t length)
 
 int main(int argc, char **argv)
 {
-  // argv[1] = key, argv[2] = IV, argv[3] = input
+  // argv[1] = 16-byte (hex) key, argv[2] = 16-byte (hex) IV, argv[3] = input filename, argv[4] = output filename
   if (argc < 4 || strlen(argv[1]) != 32 || strlen(argv[2]) != 32) {
     fprintf(stderr, "Usage: %s {key} {iv}\n", argc == 1 ? argv[0] : "aes");
     return EXIT_FAILURE;
@@ -69,25 +69,27 @@ int main(int argc, char **argv)
   off_t length;
   size_t padded;
   {
+    //open the input file
     int fd = open(argv[3], O_RDONLY);
     if (fd < 0) {
       perror("Cannot open input file");
       return EXIT_FAILURE;
     }
 
+    //get information about the input file
     struct stat st;
     if (fstat(fd, &st)) {
       perror("Cannot stat input file");
       return EXIT_FAILURE;
     }
-    
-    length = st.st_size;
+    length = st.st_size; //total size of the file, in bytes
     padded = (length + 0xF) & ~0xF;
     data = (uint8_t*) malloc(padded);
+    //actually read the data from the input file
     if (read(fd, data, length) != length) {
       perror("Cannot read input file.");
     }
-  
+
     close(fd);
   }
 
@@ -99,16 +101,15 @@ int main(int argc, char **argv)
   tm = localtime(&t);
   printf("%02d:%02d:%02d ", tm->tm_hour, tm->tm_min, tm->tm_sec);
   
-  // Encrypt in the timed portion. before this, we wait a bit and idle
+  // Encrypt in the timed portion. Before this, we wait a bit and idle
   // in order to get more stable power measurements.
   double dt;
-  {
-    const clock_t start = clock();
-    encode(&ctx, data, length);
-    const clock_t end = clock();
   
-    dt = (double)(end - start) / CLOCKS_PER_SEC;
-  }
+  const clock_t start = clock();
+  encode(&ctx, data, length); //perform the encryption
+  const clock_t end = clock();
+
+  dt = (double)(end - start) / CLOCKS_PER_SEC;
   
   t = time(NULL);
   tm = localtime(&t);
